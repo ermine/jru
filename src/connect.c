@@ -7,26 +7,33 @@
 #include <string.h>
 
 #include "srv.h"
+#include "connect.h"
+#include "account.h"
+#include "jid/jid.h"
 
 void error(const char* msg) {
   perror (msg);
   exit (EXIT_FAILURE);
 }
 
-int tcp6_connect(const char *hostname, const int port) {
+int tcp6_connect(const account_t *account) {
   int sock;
   struct sockaddr_in6 addr;
   struct hostent *hostento;
 
+  char *hostname = account->jid->domain;
+  int port = DEFAULT_PORT;
+  if (account->port != 0)
+    port = account->port;
+  
   sock = socket (AF_INET6, SOCK_STREAM, 0);
   if (sock < 0)
     return -1;
 
-  char *prefix = "_xmpp-client._tcp.";
-  char *name = malloc (sizeof (char) * strlen (prefix) + strlen (hostname) + 1);
-  memcpy(name, prefix, strlen (prefix));
-  memcpy(name + strlen (prefix), hostname, strlen (hostname));
-  name[strlen(prefix)+strlen(hostname)] = '\0';
+  char *name = malloc (sizeof (char) * strlen (SRV_PREFIX) + strlen (hostname) + 1);
+  memcpy(name, SRV_PREFIX, strlen (SRV_PREFIX));
+  memcpy(name + strlen (SRV_PREFIX), hostname, strlen (hostname));
+  name[strlen(SRV_PREFIX) + strlen(hostname)] = '\0';
 
   printf("Ready name: %s\n", name);
 
@@ -83,20 +90,24 @@ int tcp6_connect(const char *hostname, const int port) {
   return sock;
 }
 
-int tcp4_connect(const char *hostname, const int port) {
+int tcp4_connect(const account_t *account) {
   int sock;
   struct hostent *hostento;
   struct sockaddr_in addr;
+
+  char *hostname = account->jid->domain;
+  int port = DEFAULT_PORT;
+  if (account->port != 0)
+    port = account->port;
 
   sock = socket (AF_INET, SOCK_STREAM, 0);
   if (sock < 0)
     return -1;
 
-  char *prefix = "_xmpp-client._tcp.";
-  char *name = malloc (sizeof (char) * strlen (prefix) + strlen (hostname) + 1);
-  memcpy(name, prefix, strlen (prefix));
-  memcpy(name + strlen (prefix), hostname, strlen (hostname));
-  name[strlen(prefix)+strlen(hostname)] = '\0';
+  char *name = malloc (sizeof (char) * strlen (SRV_PREFIX) + strlen (hostname) + 1);
+  memcpy(name, SRV_PREFIX, strlen (SRV_PREFIX));
+  memcpy(name + strlen (SRV_PREFIX), hostname, strlen (hostname));
+  name[strlen(SRV_PREFIX)+strlen(hostname)] = '\0';
 
   printf("Ready name: %s\n", name);
 

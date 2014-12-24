@@ -1,0 +1,6 @@
+accounts: 
+  - jid: user@jabber.ru
+    password: bigsecret
+    ## ip:
+    ## port:
+
