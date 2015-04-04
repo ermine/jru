@@ -11,11 +11,6 @@
 #include "account.h"
 #include "jid/jid.h"
 
-void error(const char* msg) {
-  perror (msg);
-  exit (EXIT_FAILURE);
-}
-
 int tcp6_connect(const account_t *account) {
   int sock;
   struct sockaddr_in6 addr;

@@ -9,6 +9,7 @@ typedef struct {
 } jid_t;
 
 jid_t *jid_of_string (const char* str);
+char* jid_to_string (jid_t *jid);
 void jid_free (jid_t *jid);
 
 #endif

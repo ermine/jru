@@ -1,40 +1,82 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <libxml/xmlreader.h>
+#include <string.h>
 
-#include "config.h"
-#include "connect.h"
+#include <xstream.h>
+#include "types.h"
 
-/* #include <libxml/xmlreader.h> */
+extension_t *xstream_extension_decode (xmlTextReaderPtr reader) {
+  xmlChar *name, *namespace;
+  int i;
 
-int main(int argc, char* argv[]) {
-  config_t *config = config_load ("config.yaml");
+  name = xmlTextReaderName (reader);
+  namespace = xmlTextReaderNamespaceUri (reader);
 
-  if (config != NULL && config->accounts != NULL) {
-    account_t first_account = config->accounts[0];
-  
-    int sock;
+  void *(*decode) (xmlTextReaderPtr reader);
 
-    sock = tcp6_connect (&first_account);
-    if (sock < 0) {
-      perror ("Unable to use ipv6");
-      sock = tcp4_connect(&first_account);
-      if (sock < 0) {
-        perror ("Unable to use ipv4");
-        goto failure;
-      }
+  for (i = 0; i < extensions_len; i++) {
+    if (strcmp ((char*) name, extensions[i].name) == 0 &&
+        strcmp ((char*) namespace, extensions[i].namespace) == 0) {
+      decode = extensions[i].decode;
+      return decode(reader);
     }
-  /*
-  ` int fd = 
-  ` XmlTextReaderPtr reader = xmlReaderForFd(fd, NULL, NULL, XML_PARSE_NOENT
-  ` | XML_PARSE_NOBLANKS
-  ` | XML_PARSE_NOCDATA);
-  */
   }
-  config_destroy (config);
-  return 0;
-
- failure:
-  config_destroy (config);
-  exit (EXIT_FAILURE);
+  return NULL;
 }
-  
+
+int xstream_extension_encode (xmlTextWriterPtr writer, void* data, int type) {
+  int i;
+  int (*encoder)(xmlTextWriterPtr writer, void* data);
+
+  for (i = 0; i < extensions_len; i++) {
+    if (extensions[i].type == type) {
+      encoder = extensions[i].encode;
+      return encoder(writer, data);
+    }
+  }
+  return -2;
+}
+
+void xstream_read (int sock) {
+  xmlTextReaderPtr reader;
+  int ret;
+
+  reader = xmlReaderForFd(sock, NULL, NULL, XML_PARSE_NOENT | XML_PARSE_NOBLANKS
+                          | XML_PARSE_NOCDATA);
+
+  if (reader != NULL) {
+    ret = xmlTextReaderRead (reader);
+    while (ret == 1) {
+      //      processNode (reader);
+      ret = xmlTextReaderRead (reader);
+    }
+    xmlFreeTextReader (reader);
+    if (ret != 0) {
+      printf ("failed to parse\n");
+    }
+  } else {
+    printf ("Unable to open\n");
+  }
+}
+
+int xstream_skip (xmlTextReaderPtr reader) {
+  int ret = xmlTextReaderRead (reader);
+  while (ret == 1) {
+    switch (xmlTextReaderNodeType (reader)) {
+    case XML_READER_TYPE_ELEMENT:
+      xstream_skip (reader);
+      break;
+    case XML_READER_TYPE_END_ELEMENT:
+      return 0;
+    }
+  }
+  return ret;
+}
+
+unsigned char* xmlTextReaderReadBase64(xmlTextReaderPtr reader) {
+  const xmlChar *value = xmlTextReaderConstValue (reader);
+  if (value == NULL)
+    return NULL;
+
+  return base64_decode((char*) value), strlen((char*) value);
+}
