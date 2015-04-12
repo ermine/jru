@@ -14,23 +14,24 @@ struct stats_stat_t* newel = stats_stat_decode(reader);
   if (newel == NULL) {
     return NULL;
   }
-  llist_append((llist_t *)elm, (void*) newel, EXTENSION_TYPE_STATS_STAT);
+  vlist_append ((vlist_t **) &elm, (void*) newel, EXTENSION_TYPE_STATS_STAT);
 }
 }
   return elm;
 }
 
-int stats_stats_encode(xmlTextWriterPtr writer, struct stats_stats_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "query", BAD_CAST ns_stats) == -1)
- return -1;
-llist_t* curr = (llist_t*)elm;
+int stats_stats_encode(xmlWriter_t* writer, struct stats_stats_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_stats, "query");
+if (err != 0) return err;
+vlist_t* curr = (vlist_t*)elm;
 while (curr != NULL) {
 if (stats_stat_encode(writer, curr->data) == -1)
  return -1;
 curr = curr->next;
 }
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -41,36 +42,37 @@ struct stats_stat_t* stats_stat_decode(xmlTextReaderPtr reader) {
   const xmlChar *avalue;
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "name");
   if (avalue != NULL) {
-  elm->fName = avalue;
+  elm->fName = (const char*)avalue;
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "units");
   if (avalue != NULL) {
-  elm->fUnits = avalue;
+  elm->fUnits = (const char*)avalue;
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "value");
   if (avalue != NULL) {
-  elm->fValue = avalue;
+  elm->fValue = (const char*)avalue;
   }
   return elm;
 }
 
-int stats_stat_encode(xmlTextWriterPtr writer, struct stats_stat_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "stat", BAD_CAST ns_stats) == -1)
- return -1;
+int stats_stat_encode(xmlWriter_t* writer, struct stats_stat_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_stats, "stat");
+if (err != 0) return err;
 if (elm->fName != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "name", BAD_CAST "ns_stats", elm->fName) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_stats, "name", elm->fName);
+if (err != 0) return err;
 }
 if (elm->fUnits != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "units", BAD_CAST "ns_stats", elm->fUnits) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_stats, "units", elm->fUnits);
+if (err != 0) return err;
 }
 if (elm->fValue != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "value", BAD_CAST "ns_stats", elm->fValue) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_stats, "value", elm->fValue);
+if (err != 0) return err;
 }
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 

@@ -2,7 +2,7 @@
 #define  _STREAM_DATA_H_
 
 #include <libxml/xmlreader.h>
-#include <libxml/xmlwriter.h>
+#include "xmlwriter.h"
 #include <string.h>
 #include "xstream.h"
 #include "types.h"
@@ -40,33 +40,33 @@ enum stream_error_condition_name_t {
 };
 
 enum stream_error_condition_name_t enum_stream_error_condition_name_from_string(const xmlChar *value);
-xmlChar *enum_stream_error_condition_name_to_string(enum stream_error_condition_name_t);
+const char* enum_stream_error_condition_name_to_string(enum stream_error_condition_name_t);
 
 struct stream_start_t {
   jid_t * fTo;
   jid_t * fFrom;
-  const xmlChar * fId;
-  const xmlChar * fVersion;
-  const xmlChar * fLang;
+  const char* fId;
+  const char* fVersion;
+  const char* fLang;
 };
 
 
-typedef llist_t stream_features_t;
+typedef vlist_t stream_features_t;
 
 
 struct stream_error_t {
   langstring_t * fText;
  struct stream_condition_set_t {
   enum stream_error_condition_name_t fName;
-  const xmlChar * fExtra;
+  const char* fExtra;
 } fCondition;
 };
 
 
 struct stream_start_t* stream_start_decode(xmlTextReaderPtr reader);
-int stream_start_encode(xmlTextWriterPtr writer, struct stream_start_t* data);
+int stream_start_encode(xmlWriter_t* writer, struct stream_start_t* data);
 struct stream_features_t* stream_features_decode(xmlTextReaderPtr reader);
-int stream_features_encode(xmlTextWriterPtr writer, struct stream_features_t* data);
+int stream_features_encode(xmlWriter_t* writer, struct stream_features_t* data);
 struct stream_error_t* stream_error_decode(xmlTextReaderPtr reader);
-int stream_error_encode(xmlTextWriterPtr writer, struct stream_error_t* data);
+int stream_error_encode(xmlWriter_t* writer, struct stream_error_t* data);
 #endif

@@ -21,16 +21,16 @@ struct client_iq_t* client_iq_decode(xmlTextReaderPtr reader) {
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "id");
   if (avalue != NULL) {
-  elm->fId = avalue;
+  elm->fId = (const char*)avalue;
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "type");
   if (avalue != NULL) {
 //enum
 elm->fType = enum_client_iq_type_from_string(avalue);
   }
-  avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "xml:lang");
+  avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "lang");
   if (avalue != NULL) {
-elm->fLang = avalue;
+elm->fLang = (const char*) avalue;
   }
   int ret = xmlTextReaderRead (reader);
   while (ret == 1) {
@@ -59,33 +59,34 @@ elm->fError = newel;
   return elm;
 }
 
-int client_iq_encode(xmlTextWriterPtr writer, struct client_iq_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "iq", BAD_CAST ns_client) == -1)
- return -1;
+int client_iq_encode(xmlWriter_t* writer, struct client_iq_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_client, "iq");
+if (err != 0) return err;
 if (elm->fFrom != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "from", BAD_CAST "ns_client", BAD_CAST jid_to_string(elm->fFrom)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_client, "from", jid_to_string(elm->fFrom));
+if (err != 0) return err;
 }
 if (elm->fTo != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "to", BAD_CAST "ns_client", BAD_CAST jid_to_string(elm->fTo)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_client, "to", jid_to_string(elm->fTo));
+if (err != 0) return err;
 }
 if (elm->fId != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "id", BAD_CAST "ns_client", elm->fId) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_client, "id", elm->fId);
+if (err != 0) return err;
 }
 if (elm->fType != 0) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "type", BAD_CAST "ns_client", BAD_CAST elm->fType) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_client, "type", enum_client_iq_type_to_string(elm->fType));
+if (err != 0) return err;
 }
 if (elm->fLang != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "xml", BAD_CAST "lang", BAD_CAST "http://www.w3.org/XML/1998/namespace", BAD_CAST elm->fLang) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_xml, "lang", elm->fLang);
+if (err != 0) return err;
 }
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -108,16 +109,16 @@ struct client_presence_t* client_presence_decode(xmlTextReaderPtr reader) {
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "id");
   if (avalue != NULL) {
-  elm->fId = avalue;
+  elm->fId = (const char*)avalue;
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "type");
   if (avalue != NULL) {
 //enum
 elm->fType = enum_client_presence_type_from_string(avalue);
   }
-  avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "xml:lang");
+  avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "lang");
   if (avalue != NULL) {
-elm->fLang = avalue;
+elm->fLang = (const char*) avalue;
   }
   int ret = xmlTextReaderRead (reader);
   while (ret == 1) {
@@ -131,7 +132,7 @@ elm->fShow = enum_client_presence_show_from_string(s);
   } // for end part 1
   else if ((strcmp ((char*) name, "status") == 0) && (strcmp ((char*) namespace, ns_client) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fStatus = (value);
+elm->fStatus = (const char*) value;
   } // for end part 1
   else if ((strcmp ((char*) name, "priority") == 0) && (strcmp ((char*) namespace, ns_client) == 0)) {
  const xmlChar* s = xmlTextReaderConstValue (reader);
@@ -144,7 +145,7 @@ if (xstream_skip(reader) != 0) {
     return NULL;
   }
 } else {
-  llist_append((llist_t*)elm->fX, newel->data, newel->type);
+  vlist_append ((vlist_t**)&elm->fX, newel->data, newel->type);
 free(newel);
 }
 }
@@ -159,36 +160,37 @@ elm->fError = newel;
   return elm;
 }
 
-int client_presence_encode(xmlTextWriterPtr writer, struct client_presence_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "presence", BAD_CAST ns_client) == -1)
- return -1;
+int client_presence_encode(xmlWriter_t* writer, struct client_presence_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_client, "presence");
+if (err != 0) return err;
 if (elm->fFrom != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "from", BAD_CAST "ns_client", BAD_CAST jid_to_string(elm->fFrom)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_client, "from", jid_to_string(elm->fFrom));
+if (err != 0) return err;
 }
 if (elm->fTo != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "to", BAD_CAST "ns_client", BAD_CAST jid_to_string(elm->fTo)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_client, "to", jid_to_string(elm->fTo));
+if (err != 0) return err;
 }
 if (elm->fId != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "id", BAD_CAST "ns_client", elm->fId) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_client, "id", elm->fId);
+if (err != 0) return err;
 }
 if (elm->fType != 0) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "type", BAD_CAST "ns_client", BAD_CAST elm->fType) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_client, "type", enum_client_presence_type_to_string(elm->fType));
+if (err != 0) return err;
 }
 if (elm->fLang != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "xml", BAD_CAST "lang", BAD_CAST "http://www.w3.org/XML/1998/namespace", BAD_CAST elm->fLang) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_xml, "lang", elm->fLang);
+if (err != 0) return err;
 }
 //here condition
 //here condition
 //here condition
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -211,16 +213,16 @@ struct client_message_t* client_message_decode(xmlTextReaderPtr reader) {
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "id");
   if (avalue != NULL) {
-  elm->fId = avalue;
+  elm->fId = (const char*)avalue;
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "type");
   if (avalue != NULL) {
 //enum
 elm->fType = enum_client_message_type_from_string(avalue);
   }
-  avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "xml:lang");
+  avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "lang");
   if (avalue != NULL) {
-elm->fLang = avalue;
+elm->fLang = (const char*) avalue;
   }
   int ret = xmlTextReaderRead (reader);
   while (ret == 1) {
@@ -229,7 +231,7 @@ const xmlChar* namespace = xmlTextReaderConstNamespaceUri (reader);
 const xmlChar* name = xmlTextReaderConstName (reader);
  if ((strcmp ((char*) name, "thread") == 0) && (strcmp ((char*) namespace, ns_client) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fThread = (value);
+elm->fThread = (const char*) value;
   } // for end part 1
   else if ((strcmp ((char*) name, "subject") == 0) && (strcmp ((char*) namespace, ns_client) == 0)) {
     langstring_decode (reader, elm->fSubject);
@@ -244,7 +246,7 @@ if (xstream_skip(reader) != 0) {
     return NULL;
   }
 } else {
-  llist_append((llist_t*)elm->fX, newel->data, newel->type);
+  vlist_append ((vlist_t**)&elm->fX, newel->data, newel->type);
 free(newel);
 }
 }
@@ -259,60 +261,61 @@ elm->fError = newel;
   return elm;
 }
 
-int client_message_encode(xmlTextWriterPtr writer, struct client_message_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "message", BAD_CAST ns_client) == -1)
- return -1;
+int client_message_encode(xmlWriter_t* writer, struct client_message_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_client, "message");
+if (err != 0) return err;
 if (elm->fFrom != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "from", BAD_CAST "ns_client", BAD_CAST jid_to_string(elm->fFrom)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_client, "from", jid_to_string(elm->fFrom));
+if (err != 0) return err;
 }
 if (elm->fTo != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "to", BAD_CAST "ns_client", BAD_CAST jid_to_string(elm->fTo)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_client, "to", jid_to_string(elm->fTo));
+if (err != 0) return err;
 }
 if (elm->fId != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "id", BAD_CAST "ns_client", elm->fId) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_client, "id", elm->fId);
+if (err != 0) return err;
 }
 if (elm->fType != 0) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "type", BAD_CAST "ns_client", BAD_CAST elm->fType) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_client, "type", enum_client_message_type_to_string(elm->fType));
+if (err != 0) return err;
 }
 if (elm->fLang != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "xml", BAD_CAST "lang", BAD_CAST "http://www.w3.org/XML/1998/namespace", BAD_CAST elm->fLang) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_xml, "lang", elm->fLang);
+if (err != 0) return err;
 }
 //here condition
 //here condition
 //here condition
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
 enum client_iq_type_t enum_client_iq_type_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_client_iq_type_to_string(enum client_iq_type_t value) {
+const char* enum_client_iq_type_to_string(enum client_iq_type_t value) {
 return NULL;
 }
 enum client_presence_type_t enum_client_presence_type_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_client_presence_type_to_string(enum client_presence_type_t value) {
+const char* enum_client_presence_type_to_string(enum client_presence_type_t value) {
 return NULL;
 }
 enum client_presence_show_t enum_client_presence_show_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_client_presence_show_to_string(enum client_presence_show_t value) {
+const char* enum_client_presence_show_to_string(enum client_presence_show_t value) {
 return NULL;
 }
 enum client_message_type_t enum_client_message_type_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_client_message_type_to_string(enum client_message_type_t value) {
+const char* enum_client_message_type_to_string(enum client_message_type_t value) {
 return NULL;
 }

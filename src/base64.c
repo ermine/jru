@@ -1,7 +1,10 @@
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
+#include "helpers.h"
+#include "types.h"
 
-static unsigned char encoding_table[] = {
+unsigned char encoding_table[] = {
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
   'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
   'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
@@ -31,17 +34,17 @@ static unsigned int decoding_table[256] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
   
-static int mod_table[] = {0, 2, 1};
+int mod_table[] = {0, 2, 1};
 
 char *base64_encode(const unsigned char *data, size_t len) {
   int output_len = 4 * ((len + 2) / 3);
   
   char *encoded_data = malloc(output_len + 1);
-  if (encoded_data == NULL) return NULL;
+  if (encoded_data == NULL)
+    fatal ("base64_encode: malloc failed");
 
   int i = 0, j = 0;
   for (i = 0, j = 0; i < len;) {
-    
     uint32_t octet_a = i < len ? (unsigned char)data[i++] : 0;
     uint32_t octet_b = i < len ? (unsigned char)data[i++] : 0;
     uint32_t octet_c = i < len ? (unsigned char)data[i++] : 0;
@@ -61,7 +64,8 @@ char *base64_encode(const unsigned char *data, size_t len) {
 }
 
 
-unsigned char *base64_decode(const char *data, size_t len) {
+unsigned char* base64_decode(const xmlChar* data) {
+  size_t len = strlen((char*) data);
   if (len % 4 != 0)
     return NULL;
   
@@ -70,7 +74,8 @@ unsigned char *base64_decode(const char *data, size_t len) {
   if (data[len - 2] == '=') (output_len)--;
   
   unsigned char *decoded_data = malloc(output_len);
-  if (decoded_data == NULL) return NULL;
+  if (decoded_data == NULL)
+    fatal ("base64_decode: malloc failed");
 
   int i = 0, j = 0;
   for (i = 0, j = 0; i < len;) {

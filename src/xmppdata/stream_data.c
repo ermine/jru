@@ -21,41 +21,42 @@ struct stream_start_t* stream_start_decode(xmlTextReaderPtr reader) {
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "id");
   if (avalue != NULL) {
-  elm->fId = avalue;
+  elm->fId = (const char*)avalue;
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "version");
   if (avalue != NULL) {
-  elm->fVersion = avalue;
+  elm->fVersion = (const char*)avalue;
   }
-  avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "xml:lang");
+  avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "lang");
   if (avalue != NULL) {
-elm->fLang = avalue;
+elm->fLang = (const char*) avalue;
   }
   return elm;
 }
 
-int stream_start_encode(xmlTextWriterPtr writer, struct stream_start_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "stream", BAD_CAST ns_stream) == -1)
- return -1;
+int stream_start_encode(xmlWriter_t* writer, struct stream_start_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_stream, "stream");
+if (err != 0) return err;
 if (elm->fTo != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "to", BAD_CAST "ns_stream", BAD_CAST jid_to_string(elm->fTo)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_stream, "to", jid_to_string(elm->fTo));
+if (err != 0) return err;
 }
 if (elm->fFrom != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "from", BAD_CAST "ns_stream", BAD_CAST jid_to_string(elm->fFrom)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_stream, "from", jid_to_string(elm->fFrom));
+if (err != 0) return err;
 }
 if (elm->fId != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "id", BAD_CAST "ns_stream", elm->fId) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_stream, "id", elm->fId);
+if (err != 0) return err;
 }
 if (elm->fVersion != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "version", BAD_CAST "ns_stream", elm->fVersion) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_stream, "version", elm->fVersion);
+if (err != 0) return err;
 }
 if (elm->fLang != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "xml", BAD_CAST "lang", BAD_CAST "http://www.w3.org/XML/1998/namespace", BAD_CAST elm->fLang) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_xml, "lang", elm->fLang);
+if (err != 0) return err;
 }
   return 0;
 }
@@ -67,7 +68,7 @@ struct stream_features_t* stream_features_decode(xmlTextReaderPtr reader) {
   while (ret == 1) {
     extension_t *newel = xstream_extension_decode (reader);
     if (newel != NULL) {
-      llist_append((llist_t*)elm, newel->data, newel->type);
+      vlist_append((vlist_t**) &elm, newel->data, newel->type);
 free(newel);
      }
      ret = xmlTextReaderRead (reader);
@@ -75,17 +76,18 @@ free(newel);
   return elm;
 }
 
-int stream_features_encode(xmlTextWriterPtr writer, struct stream_features_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "features", BAD_CAST ns_stream) == -1)
- return -1;
-llist_t* curr = (llist_t*)elm;
+int stream_features_encode(xmlWriter_t* writer, struct stream_features_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_stream, "features");
+if (err != 0) return err;
+vlist_t* curr = (vlist_t*)elm;
 while (curr != NULL) {
 if (xstream_extension_encode (writer, curr->data, curr->type) == -1)
  return -1;
 curr = curr->next;
 }
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -104,25 +106,26 @@ const xmlChar* name = xmlTextReaderConstName (reader);
   else if (strcmp ((char*) namespace, ns_stream) != 0) {
 // element set
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fCondition.fExtra = (value);
+elm->fCondition.fExtra = (const char*) value;
       } // any end
   } // while end
   return elm;
 }
 
-int stream_error_encode(xmlTextWriterPtr writer, struct stream_error_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "error", BAD_CAST ns_stream) == -1)
- return -1;
+int stream_error_encode(xmlWriter_t* writer, struct stream_error_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_stream, "error");
+if (err != 0) return err;
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
 enum stream_error_condition_name_t enum_stream_error_condition_name_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_stream_error_condition_name_to_string(enum stream_error_condition_name_t value) {
+const char* enum_stream_error_condition_name_to_string(enum stream_error_condition_name_t value) {
 return NULL;
 }

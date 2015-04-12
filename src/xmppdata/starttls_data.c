@@ -22,12 +22,13 @@ const xmlChar* name = xmlTextReaderConstName (reader);
   return elm;
 }
 
-int starttls_starttls_encode(xmlTextWriterPtr writer, struct starttls_starttls_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "starttls", BAD_CAST ns_starttls) == -1)
- return -1;
+int starttls_starttls_encode(xmlWriter_t* writer, struct starttls_starttls_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_starttls, "starttls");
+if (err != 0) return err;
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -40,11 +41,12 @@ if (xstream_skip(reader) != 0) {
   return elm;
 }
 
-int starttls_proceed_encode(xmlTextWriterPtr writer, struct starttls_proceed_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "proceed", BAD_CAST ns_starttls) == -1)
- return -1;
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+int starttls_proceed_encode(xmlWriter_t* writer, struct starttls_proceed_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_starttls, "proceed");
+if (err != 0) return err;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -57,11 +59,12 @@ if (xstream_skip(reader) != 0) {
   return elm;
 }
 
-int starttls_failure_encode(xmlTextWriterPtr writer, struct starttls_failure_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "failure", BAD_CAST ns_starttls) == -1)
- return -1;
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+int starttls_failure_encode(xmlWriter_t* writer, struct starttls_failure_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_starttls, "failure");
+if (err != 0) return err;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 

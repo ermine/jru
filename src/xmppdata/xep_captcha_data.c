@@ -9,12 +9,13 @@ struct captcha_captcha_t* captcha_captcha_decode(xmlTextReaderPtr reader) {
   return elm;
 }
 
-int captcha_captcha_encode(xmlTextWriterPtr writer, struct captcha_captcha_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "captcha", BAD_CAST ns_captcha) == -1)
- return -1;
+int captcha_captcha_encode(xmlWriter_t* writer, struct captcha_captcha_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_captcha, "captcha");
+if (err != 0) return err;
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 

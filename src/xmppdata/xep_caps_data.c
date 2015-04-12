@@ -9,44 +9,45 @@ struct caps_caps_t* caps_caps_decode(xmlTextReaderPtr reader) {
   const xmlChar *avalue;
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "ext");
   if (avalue != NULL) {
-  elm->fExt = avalue;
+  elm->fExt = (const char*)avalue;
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "hash");
   if (avalue != NULL) {
-  elm->fHash = avalue;
+  elm->fHash = (const char*)avalue;
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "node");
   if (avalue != NULL) {
-  elm->fNode = avalue;
+  elm->fNode = (const char*)avalue;
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "ver");
   if (avalue != NULL) {
-  elm->fVer = avalue;
+  elm->fVer = (const char*)avalue;
   }
   return elm;
 }
 
-int caps_caps_encode(xmlTextWriterPtr writer, struct caps_caps_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "c", BAD_CAST ns_caps) == -1)
- return -1;
+int caps_caps_encode(xmlWriter_t* writer, struct caps_caps_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_caps, "c");
+if (err != 0) return err;
 if (elm->fExt != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "ext", BAD_CAST "ns_caps", elm->fExt) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_caps, "ext", elm->fExt);
+if (err != 0) return err;
 }
 if (elm->fHash != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "hash", BAD_CAST "ns_caps", elm->fHash) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_caps, "hash", elm->fHash);
+if (err != 0) return err;
 }
 if (elm->fNode != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "node", BAD_CAST "ns_caps", elm->fNode) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_caps, "node", elm->fNode);
+if (err != 0) return err;
 }
 if (elm->fVer != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "ver", BAD_CAST "ns_caps", elm->fVer) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_caps, "ver", elm->fVer);
+if (err != 0) return err;
 }
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 

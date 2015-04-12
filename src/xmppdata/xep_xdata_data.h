@@ -2,7 +2,7 @@
 #define  _XEP_XDATA_DATA_H_
 
 #include <libxml/xmlreader.h>
-#include <libxml/xmlwriter.h>
+#include "xmlwriter.h"
 #include <string.h>
 #include "xstream.h"
 #include "types.h"
@@ -20,7 +20,7 @@ enum xdata_x_type_t {
 };
 
 enum xdata_x_type_t enum_xdata_x_type_from_string(const xmlChar *value);
-xmlChar *enum_xdata_x_type_to_string(enum xdata_x_type_t);
+const char* enum_xdata_x_type_to_string(enum xdata_x_type_t);
 enum xdata_field_type_t {
   XDATA_FIELD_TYPE_BOOLEAN,
   XDATA_FIELD_TYPE_FIXED,
@@ -35,37 +35,37 @@ enum xdata_field_type_t {
 };
 
 enum xdata_field_type_t enum_xdata_field_type_from_string(const xmlChar *value);
-xmlChar *enum_xdata_field_type_to_string(enum xdata_field_type_t);
+const char* enum_xdata_field_type_to_string(enum xdata_field_type_t);
 
 struct xdata_x_t {
   enum xdata_x_type_t fType;
-  const xmlChar * fTitle;
-  llist_t *fReported;
- llist_t *fFields;
+  const char* fTitle;
+  vlist_t *fReported;
+ vlist_t *fFields;
 };
 
 
 struct xdata_field_t {
-  const xmlChar * fLabel;
+  const char* fLabel;
   enum xdata_field_type_t fType;
-  const xmlChar * fVar;
-  const xmlChar * fDesc;
+  const char* fVar;
+  const char* fDesc;
   boolean_t fRequired;
-  const xmlChar * fValue;
-  llist_t *fOption;
+  const char* fValue;
+  vlist_t *fOption;
 };
 
 
 struct xdata_option_t {
-  const xmlChar * fLabel;
-  const xmlChar * fValue;
+  const char* fLabel;
+  const char* fValue;
 };
 
 
 struct xdata_x_t* xdata_x_decode(xmlTextReaderPtr reader);
-int xdata_x_encode(xmlTextWriterPtr writer, struct xdata_x_t* data);
+int xdata_x_encode(xmlWriter_t* writer, struct xdata_x_t* data);
 struct xdata_field_t* xdata_field_decode(xmlTextReaderPtr reader);
-int xdata_field_encode(xmlTextWriterPtr writer, struct xdata_field_t* data);
+int xdata_field_encode(xmlWriter_t* writer, struct xdata_field_t* data);
 struct xdata_option_t* xdata_option_decode(xmlTextReaderPtr reader);
-int xdata_option_encode(xmlTextWriterPtr writer, struct xdata_option_t* data);
+int xdata_option_encode(xmlWriter_t* writer, struct xdata_option_t* data);
 #endif

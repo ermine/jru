@@ -2,7 +2,7 @@
 #define  _XEP_CAPTCHA_DATA_H_
 
 #include <libxml/xmlreader.h>
-#include <libxml/xmlwriter.h>
+#include "xmlwriter.h"
 #include <string.h>
 #include "xstream.h"
 #include "types.h"
@@ -18,5 +18,5 @@ struct xdata_x_t* fXdata;
 
 
 struct captcha_captcha_t* captcha_captcha_decode(xmlTextReaderPtr reader);
-int captcha_captcha_encode(xmlTextWriterPtr writer, struct captcha_captcha_t* data);
+int captcha_captcha_encode(xmlWriter_t* writer, struct captcha_captcha_t* data);
 #endif

@@ -9,7 +9,7 @@ struct roster_roster_t* roster_roster_decode(xmlTextReaderPtr reader) {
   const xmlChar *avalue;
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "ver");
   if (avalue != NULL) {
-  elm->fVer = avalue;
+  elm->fVer = (const char*)avalue;
   }
   int ret = xmlTextReaderRead (reader);
   while (ret == 1) {
@@ -22,22 +22,23 @@ struct roster_item_t* newel = roster_item_decode(reader);
   if (newel == NULL) {
     return NULL;
   }
-  llist_append((llist_t*)elm->fItems, (void*) newel, EXTENSION_TYPE_ROSTER_ITEM);
+  vlist_append ((vlist_t**)&elm->fItems, (void*) newel, EXTENSION_TYPE_ROSTER_ITEM);
   }
   } // while end
   return elm;
 }
 
-int roster_roster_encode(xmlTextWriterPtr writer, struct roster_roster_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "query", BAD_CAST ns_roster) == -1)
- return -1;
+int roster_roster_encode(xmlWriter_t* writer, struct roster_roster_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_roster, "query");
+if (err != 0) return err;
 if (elm->fVer != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "ver", BAD_CAST "ns_roster", elm->fVer) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_roster, "ver", elm->fVer);
+if (err != 0) return err;
 }
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -63,7 +64,7 @@ elm->fAsk = enum_roster_item_ask_from_string(avalue);
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "name");
   if (avalue != NULL) {
-  elm->fName = avalue;
+  elm->fName = (const char*)avalue;
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "subscription");
   if (avalue != NULL) {
@@ -77,50 +78,51 @@ const xmlChar* namespace = xmlTextReaderConstNamespaceUri (reader);
 const xmlChar* name = xmlTextReaderConstName (reader);
  if ((strcmp ((char*) name, "group") == 0) && (strcmp ((char*) namespace, ns_roster) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-  llist_append((llist_t*)elm->fGroup, (void*) value, 0);
+  vlist_append ((vlist_t**) &elm->fGroup, (void*) value, 0);
   } // for end part 1
   } // while end
   return elm;
 }
 
-int roster_item_encode(xmlTextWriterPtr writer, struct roster_item_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "item", BAD_CAST ns_roster) == -1)
- return -1;
+int roster_item_encode(xmlWriter_t* writer, struct roster_item_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_roster, "item");
+if (err != 0) return err;
 if (elm->fApproved) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "approved", BAD_CAST "ns_roster", strconv_format_boolean(elm->fApproved)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_roster, "approved", strconv_format_boolean(elm->fApproved));
+if (err != 0) return err;
 }
 if (elm->fAsk != 0) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "ask", BAD_CAST "ns_roster", BAD_CAST elm->fAsk) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_roster, "ask", enum_roster_item_ask_to_string(elm->fAsk));
+if (err != 0) return err;
 }
 if (elm->fJid != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "jid", BAD_CAST "ns_roster", BAD_CAST jid_to_string(elm->fJid)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_roster, "jid", jid_to_string(elm->fJid));
+if (err != 0) return err;
 }
 if (elm->fName != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "name", BAD_CAST "ns_roster", elm->fName) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_roster, "name", elm->fName);
+if (err != 0) return err;
 }
 if (elm->fSubscription != 0) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "subscription", BAD_CAST "ns_roster", BAD_CAST elm->fSubscription) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_roster, "subscription", enum_roster_item_subscription_to_string(elm->fSubscription));
+if (err != 0) return err;
 }
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
 enum roster_item_ask_t enum_roster_item_ask_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_roster_item_ask_to_string(enum roster_item_ask_t value) {
+const char* enum_roster_item_ask_to_string(enum roster_item_ask_t value) {
 return NULL;
 }
 enum roster_item_subscription_t enum_roster_item_subscription_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_roster_item_subscription_to_string(enum roster_item_subscription_t value) {
+const char* enum_roster_item_subscription_to_string(enum roster_item_subscription_t value) {
 return NULL;
 }

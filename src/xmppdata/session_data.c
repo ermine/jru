@@ -11,11 +11,12 @@ if (xstream_skip(reader) != 0) {
   return elm;
 }
 
-int session_session_encode(xmlTextWriterPtr writer, struct session_session_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "session", BAD_CAST ns_session) == -1)
- return -1;
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+int session_session_encode(xmlWriter_t* writer, struct session_session_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_session, "session");
+if (err != 0) return err;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 

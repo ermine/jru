@@ -13,18 +13,19 @@ const xmlChar* namespace = xmlTextReaderConstNamespaceUri (reader);
 const xmlChar* name = xmlTextReaderConstName (reader);
  if ((strcmp ((char*) name, "mechanism") == 0) && (strcmp ((char*) namespace, ns_sasl) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-  llist_append((llist_t*)elm->fMechanism, (void*) value, 0);
+  vlist_append ((vlist_t**) &elm->fMechanism, (void*) value, 0);
   } // for end part 1
   } // while end
   return elm;
 }
 
-int sasl_mechanisms_encode(xmlTextWriterPtr writer, struct sasl_mechanisms_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "mechanisms", BAD_CAST ns_sasl) == -1)
- return -1;
+int sasl_mechanisms_encode(xmlWriter_t* writer, struct sasl_mechanisms_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_sasl, "mechanisms");
+if (err != 0) return err;
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -35,25 +36,26 @@ struct sasl_auth_t* sasl_auth_decode(xmlTextReaderPtr reader) {
   const xmlChar *avalue;
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "mechanism");
   if (avalue != NULL) {
-  elm->fMechanism = avalue;
+  elm->fMechanism = (const char*)avalue;
   }
 elm->fData = xmlTextReaderReadBase64(reader);
   return elm;
 }
 
-int sasl_auth_encode(xmlTextWriterPtr writer, struct sasl_auth_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "auth", BAD_CAST ns_sasl) == -1)
- return -1;
+int sasl_auth_encode(xmlWriter_t* writer, struct sasl_auth_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_sasl, "auth");
+if (err != 0) return err;
 if (elm->fMechanism != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "mechanism", BAD_CAST "ns_sasl", elm->fMechanism) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_sasl, "mechanism", elm->fMechanism);
+if (err != 0) return err;
 }
 if (elm->fData != NULL) {
-if (xmlTextWriterWriteBase64(writer, (char*)elm->fData, 0, strlen((char*)elm->fData)) == -1)
- return -1;
+err = xmlwriter_base64 (writer, (char*)elm->fData);
+if (err != 0) return err;
 }
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -65,15 +67,16 @@ elm->fData = xmlTextReaderReadBase64(reader);
   return elm;
 }
 
-int sasl_success_encode(xmlTextWriterPtr writer, struct sasl_success_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "success", BAD_CAST ns_sasl) == -1)
- return -1;
+int sasl_success_encode(xmlWriter_t* writer, struct sasl_success_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_sasl, "success");
+if (err != 0) return err;
 if (elm->fData != NULL) {
-if (xmlTextWriterWriteBase64(writer, (char*)elm->fData, 0, strlen((char*)elm->fData)) == -1)
- return -1;
+err = xmlwriter_base64 (writer, (char*)elm->fData);
+if (err != 0) return err;
 }
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -85,15 +88,16 @@ elm->fData = xmlTextReaderReadBase64(reader);
   return elm;
 }
 
-int sasl_challenge_encode(xmlTextWriterPtr writer, struct sasl_challenge_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "challenge", BAD_CAST ns_sasl) == -1)
- return -1;
+int sasl_challenge_encode(xmlWriter_t* writer, struct sasl_challenge_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_sasl, "challenge");
+if (err != 0) return err;
 if (elm->fData != NULL) {
-if (xmlTextWriterWriteBase64(writer, (char*)elm->fData, 0, strlen((char*)elm->fData)) == -1)
- return -1;
+err = xmlwriter_base64 (writer, (char*)elm->fData);
+if (err != 0) return err;
 }
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -105,15 +109,16 @@ elm->fData = xmlTextReaderReadBase64(reader);
   return elm;
 }
 
-int sasl_response_encode(xmlTextWriterPtr writer, struct sasl_response_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "response", BAD_CAST ns_sasl) == -1)
- return -1;
+int sasl_response_encode(xmlWriter_t* writer, struct sasl_response_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_sasl, "response");
+if (err != 0) return err;
 if (elm->fData != NULL) {
-if (xmlTextWriterWriteBase64(writer, (char*)elm->fData, 0, strlen((char*)elm->fData)) == -1)
- return -1;
+err = xmlwriter_base64 (writer, (char*)elm->fData);
+if (err != 0) return err;
 }
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -140,19 +145,20 @@ elm->fCondition = enum_sasl_failure_condition_from_string(name);
   return elm;
 }
 
-int sasl_failure_encode(xmlTextWriterPtr writer, struct sasl_failure_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "failure", BAD_CAST ns_sasl) == -1)
- return -1;
+int sasl_failure_encode(xmlWriter_t* writer, struct sasl_failure_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_sasl, "failure");
+if (err != 0) return err;
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
 enum sasl_failure_condition_t enum_sasl_failure_condition_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_sasl_failure_condition_to_string(enum sasl_failure_condition_t value) {
+const char* enum_sasl_failure_condition_to_string(enum sasl_failure_condition_t value) {
 return NULL;
 }

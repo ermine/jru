@@ -17,20 +17,21 @@ struct privacy_list_t* newel = privacy_list_decode(reader);
   if (newel == NULL) {
     return NULL;
   }
-  llist_append((llist_t*)elm->fList, (void*) newel, EXTENSION_TYPE_PRIVACY_LIST);
+  vlist_append ((vlist_t**)&elm->fList, (void*) newel, EXTENSION_TYPE_PRIVACY_LIST);
   }
   } // while end
   return elm;
 }
 
-int privacy_privacy_encode(xmlTextWriterPtr writer, struct privacy_privacy_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "query", BAD_CAST ns_privacy) == -1)
- return -1;
+int privacy_privacy_encode(xmlWriter_t* writer, struct privacy_privacy_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_privacy, "query");
+if (err != 0) return err;
 //here condition
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -41,26 +42,27 @@ struct privacy_active_t* privacy_active_decode(xmlTextReaderPtr reader) {
   const xmlChar *avalue;
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "name");
   if (avalue != NULL) {
-  elm->fName = avalue;
+  elm->fName = (const char*)avalue;
   }
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fExtra = (value);
+elm->fExtra = (const char*) value;
   return elm;
 }
 
-int privacy_active_encode(xmlTextWriterPtr writer, struct privacy_active_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "active", BAD_CAST ns_privacy) == -1)
- return -1;
+int privacy_active_encode(xmlWriter_t* writer, struct privacy_active_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_privacy, "active");
+if (err != 0) return err;
 if (elm->fName != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "name", BAD_CAST "ns_privacy", elm->fName) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_privacy, "name", elm->fName);
+if (err != 0) return err;
 }
 if (elm->fExtra != NULL) {
-if (xmlTextWriterWriteCDATA(writer, elm->fExtra) == -1)
- return -1;
+err = xmlwriter_text (writer, elm->fExtra);
+if (err != 0) return err;
 }
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -71,26 +73,27 @@ struct privacy_default_t* privacy_default_decode(xmlTextReaderPtr reader) {
   const xmlChar *avalue;
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "name");
   if (avalue != NULL) {
-  elm->fName = avalue;
+  elm->fName = (const char*)avalue;
   }
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fExtra = (value);
+elm->fExtra = (const char*) value;
   return elm;
 }
 
-int privacy_default_encode(xmlTextWriterPtr writer, struct privacy_default_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "default", BAD_CAST ns_privacy) == -1)
- return -1;
+int privacy_default_encode(xmlWriter_t* writer, struct privacy_default_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_privacy, "default");
+if (err != 0) return err;
 if (elm->fName != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "name", BAD_CAST "ns_privacy", elm->fName) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_privacy, "name", elm->fName);
+if (err != 0) return err;
 }
 if (elm->fExtra != NULL) {
-if (xmlTextWriterWriteCDATA(writer, elm->fExtra) == -1)
- return -1;
+err = xmlwriter_text (writer, elm->fExtra);
+if (err != 0) return err;
 }
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -101,7 +104,7 @@ struct privacy_list_t* privacy_list_decode(xmlTextReaderPtr reader) {
   const xmlChar *avalue;
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "name");
   if (avalue != NULL) {
-  elm->fName = avalue;
+  elm->fName = (const char*)avalue;
   }
   int ret = xmlTextReaderRead (reader);
   while (ret == 1) {
@@ -114,22 +117,23 @@ struct privacy_item_t* newel = privacy_item_decode(reader);
   if (newel == NULL) {
     return NULL;
   }
-  llist_append((llist_t*)elm->fItems, (void*) newel, EXTENSION_TYPE_PRIVACY_ITEM);
+  vlist_append ((vlist_t**)&elm->fItems, (void*) newel, EXTENSION_TYPE_PRIVACY_ITEM);
   }
   } // while end
   return elm;
 }
 
-int privacy_list_encode(xmlTextWriterPtr writer, struct privacy_list_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "list", BAD_CAST ns_privacy) == -1)
- return -1;
+int privacy_list_encode(xmlWriter_t* writer, struct privacy_list_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_privacy, "list");
+if (err != 0) return err;
 if (elm->fName != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "name", BAD_CAST "ns_privacy", elm->fName) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_privacy, "name", elm->fName);
+if (err != 0) return err;
 }
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -154,7 +158,7 @@ elm->fType = enum_privacy_item_type_from_string(avalue);
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "value");
   if (avalue != NULL) {
-  elm->fValue = avalue;
+  elm->fValue = (const char*)avalue;
   }
   int ret = xmlTextReaderRead (reader);
   while (ret == 1) {
@@ -193,43 +197,44 @@ const xmlChar* name = xmlTextReaderConstName (reader);
   return elm;
 }
 
-int privacy_item_encode(xmlTextWriterPtr writer, struct privacy_item_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "item", BAD_CAST ns_privacy) == -1)
- return -1;
+int privacy_item_encode(xmlWriter_t* writer, struct privacy_item_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_privacy, "item");
+if (err != 0) return err;
 if (elm->fAction != 0) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "action", BAD_CAST "ns_privacy", BAD_CAST elm->fAction) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_privacy, "action", enum_privacy_item_action_to_string(elm->fAction));
+if (err != 0) return err;
 }
 if (elm->fOrder != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "order", BAD_CAST "ns_privacy", strconv_format_uint(elm->fOrder)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_privacy, "order", strconv_format_uint(elm->fOrder));
+if (err != 0) return err;
 }
 if (elm->fType != 0) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "type", BAD_CAST "ns_privacy", BAD_CAST elm->fType) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_privacy, "type", enum_privacy_item_type_to_string(elm->fType));
+if (err != 0) return err;
 }
 if (elm->fValue != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "value", BAD_CAST "ns_privacy", elm->fValue) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_privacy, "value", elm->fValue);
+if (err != 0) return err;
 }
 //here condition
 //here condition
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
 enum privacy_item_action_t enum_privacy_item_action_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_privacy_item_action_to_string(enum privacy_item_action_t value) {
+const char* enum_privacy_item_action_to_string(enum privacy_item_action_t value) {
 return NULL;
 }
 enum privacy_item_type_t enum_privacy_item_type_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_privacy_item_type_to_string(enum privacy_item_type_t value) {
+const char* enum_privacy_item_type_to_string(enum privacy_item_type_t value) {
 return NULL;
 }

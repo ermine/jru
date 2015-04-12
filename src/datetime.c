@@ -57,6 +57,6 @@ struct tm* datetime_parse(const xmlChar* value) {
   return NULL;
 }
 
-const xmlChar* datetime_to_string(struct tm* data) {
+const char* datetime_to_string(struct tm* data) {
   return NULL;
 }

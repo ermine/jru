@@ -17,25 +17,26 @@ const xmlChar* name = xmlTextReaderConstName (reader);
   else if (strcmp ((char*) namespace, ns_stanza) != 0) {
 // element set
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fCondition.fExtra = (value);
+elm->fCondition.fExtra = (const char*) value;
       } // any end
   } // while end
   return elm;
 }
 
-int stanza_error_encode(xmlTextWriterPtr writer, struct stanza_error_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "error", BAD_CAST ns_stanza) == -1)
- return -1;
+int stanza_error_encode(xmlWriter_t* writer, struct stanza_error_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_stanza, "error");
+if (err != 0) return err;
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
 enum stanza_error_condition_name_t enum_stanza_error_condition_name_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_stanza_error_condition_name_to_string(enum stanza_error_condition_name_t value) {
+const char* enum_stanza_error_condition_name_to_string(enum stanza_error_condition_name_t value) {
 return NULL;
 }

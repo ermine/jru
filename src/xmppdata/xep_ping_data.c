@@ -11,11 +11,12 @@ if (xstream_skip(reader) != 0) {
   return elm;
 }
 
-int ping_ping_encode(xmlTextWriterPtr writer, struct ping_ping_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "ping", BAD_CAST ns_ping) == -1)
- return -1;
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+int ping_ping_encode(xmlWriter_t* writer, struct ping_ping_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_ping, "ping");
+if (err != 0) return err;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 

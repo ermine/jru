@@ -19,7 +19,7 @@ const xmlChar* namespace = xmlTextReaderConstNamespaceUri (reader);
 const xmlChar* name = xmlTextReaderConstName (reader);
  if ((strcmp ((char*) name, "title") == 0) && (strcmp ((char*) namespace, ns_xdata) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fTitle = (value);
+elm->fTitle = (const char*) value;
   } // for end part 1
   else if ((strcmp ((char*) name, "reported") == 0) && (strcmp ((char*) namespace, ns_xdata) == 0)) {
   int ret = xmlTextReaderRead (reader);
@@ -31,7 +31,7 @@ struct xdata_field_t* newel = xdata_field_decode(reader);
   if (newel == NULL) {
     return NULL;
   }
-  llist_append((llist_t*)elm->fReported, (void*) newel, EXTENSION_TYPE_XDATA_FIELD);
+  vlist_append ((vlist_t**) &elm->fReported, (void*) newel, EXTENSION_TYPE_XDATA_FIELD);
 }
   if (xmlTextReaderNodeType (reader) == 15) {
 break;
@@ -43,18 +43,19 @@ break;
   return elm;
 }
 
-int xdata_x_encode(xmlTextWriterPtr writer, struct xdata_x_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "x", BAD_CAST ns_xdata) == -1)
- return -1;
+int xdata_x_encode(xmlWriter_t* writer, struct xdata_x_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_xdata, "x");
+if (err != 0) return err;
 if (elm->fType != 0) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "type", BAD_CAST "ns_xdata", BAD_CAST elm->fType) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_xdata, "type", enum_xdata_x_type_to_string(elm->fType));
+if (err != 0) return err;
 }
 //here condition
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -65,7 +66,7 @@ struct xdata_field_t* xdata_field_decode(xmlTextReaderPtr reader) {
   const xmlChar *avalue;
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "label");
   if (avalue != NULL) {
-  elm->fLabel = avalue;
+  elm->fLabel = (const char*)avalue;
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "type");
   if (avalue != NULL) {
@@ -74,7 +75,7 @@ elm->fType = enum_xdata_field_type_from_string(avalue);
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "var");
   if (avalue != NULL) {
-  elm->fVar = avalue;
+  elm->fVar = (const char*)avalue;
   }
   int ret = xmlTextReaderRead (reader);
   while (ret == 1) {
@@ -83,7 +84,7 @@ const xmlChar* namespace = xmlTextReaderConstNamespaceUri (reader);
 const xmlChar* name = xmlTextReaderConstName (reader);
  if ((strcmp ((char*) name, "desc") == 0) && (strcmp ((char*) namespace, ns_xdata) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fDesc = (value);
+elm->fDesc = (const char*) value;
   } // for end part 1
   else if ((strcmp ((char*) name, "required") == 0) && (strcmp ((char*) namespace, ns_xdata) == 0)) {
     elm->fRequired = true;
@@ -94,7 +95,7 @@ elm->fDesc = (value);
   } // for end part 1
   else if ((strcmp ((char*) name, "value") == 0) && (strcmp ((char*) namespace, ns_xdata) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fValue = (value);
+elm->fValue = (const char*) value;
   } // for end part 1
   else if ((strcmp ((char*) namespace, ns_xdata) == 0) && (strcmp ((char*) name, "option") == 0)) {
 //here
@@ -102,33 +103,34 @@ struct xdata_option_t* newel = xdata_option_decode(reader);
   if (newel == NULL) {
     return NULL;
   }
-  llist_append((llist_t*)elm->fOption, (void*) newel, EXTENSION_TYPE_XDATA_OPTION);
+  vlist_append ((vlist_t**)&elm->fOption, (void*) newel, EXTENSION_TYPE_XDATA_OPTION);
   }
   } // while end
   return elm;
 }
 
-int xdata_field_encode(xmlTextWriterPtr writer, struct xdata_field_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "field", BAD_CAST ns_xdata) == -1)
- return -1;
+int xdata_field_encode(xmlWriter_t* writer, struct xdata_field_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_xdata, "field");
+if (err != 0) return err;
 if (elm->fLabel != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "label", BAD_CAST "ns_xdata", elm->fLabel) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_xdata, "label", elm->fLabel);
+if (err != 0) return err;
 }
 if (elm->fType != 0) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "type", BAD_CAST "ns_xdata", BAD_CAST elm->fType) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_xdata, "type", enum_xdata_field_type_to_string(elm->fType));
+if (err != 0) return err;
 }
 if (elm->fVar != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "var", BAD_CAST "ns_xdata", elm->fVar) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_xdata, "var", elm->fVar);
+if (err != 0) return err;
 }
 //here condition
 //here condition
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -139,7 +141,7 @@ struct xdata_option_t* xdata_option_decode(xmlTextReaderPtr reader) {
   const xmlChar *avalue;
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "label");
   if (avalue != NULL) {
-  elm->fLabel = avalue;
+  elm->fLabel = (const char*)avalue;
   }
   int ret = xmlTextReaderRead (reader);
   while (ret == 1) {
@@ -148,34 +150,35 @@ const xmlChar* namespace = xmlTextReaderConstNamespaceUri (reader);
 const xmlChar* name = xmlTextReaderConstName (reader);
  if ((strcmp ((char*) name, "value") == 0) && (strcmp ((char*) namespace, ns_xdata) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fValue = (value);
+elm->fValue = (const char*) value;
   } // for end part 1
   } // while end
   return elm;
 }
 
-int xdata_option_encode(xmlTextWriterPtr writer, struct xdata_option_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "option", BAD_CAST ns_xdata) == -1)
- return -1;
+int xdata_option_encode(xmlWriter_t* writer, struct xdata_option_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_xdata, "option");
+if (err != 0) return err;
 if (elm->fLabel != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "label", BAD_CAST "ns_xdata", elm->fLabel) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_xdata, "label", elm->fLabel);
+if (err != 0) return err;
 }
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
 enum xdata_x_type_t enum_xdata_x_type_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_xdata_x_type_to_string(enum xdata_x_type_t value) {
+const char* enum_xdata_x_type_to_string(enum xdata_x_type_t value) {
 return NULL;
 }
 enum xdata_field_type_t enum_xdata_field_type_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_xdata_field_type_to_string(enum xdata_field_type_t value) {
+const char* enum_xdata_field_type_to_string(enum xdata_field_type_t value) {
 return NULL;
 }

@@ -2,7 +2,7 @@
 #define  _XEP_DISCO_DATA_H_
 
 #include <libxml/xmlreader.h>
-#include <libxml/xmlwriter.h>
+#include "xmlwriter.h"
 #include <string.h>
 #include "xstream.h"
 #include "types.h"
@@ -15,28 +15,28 @@ extern const char* ns_disco_items;
 
 
 struct disco_info_info_t {
-  const xmlChar * fNode;
-  llist_t *fIdentities;
-  llist_t *fFeatures;
+  const char* fNode;
+  vlist_t *fIdentities;
+  vlist_t *fFeatures;
 };
 
 
 struct disco_info_identity_t {
-  const xmlChar * fCategory;
-  const xmlChar * fType;
+  const char* fCategory;
+  const char* fType;
 };
 
 
 struct disco_info_feature_t {
-  const xmlChar * fVar;
+  const char* fVar;
 };
 
 
 struct disco_info_info_t* disco_info_info_decode(xmlTextReaderPtr reader);
-int disco_info_info_encode(xmlTextWriterPtr writer, struct disco_info_info_t* data);
+int disco_info_info_encode(xmlWriter_t* writer, struct disco_info_info_t* data);
 struct disco_info_identity_t* disco_info_identity_decode(xmlTextReaderPtr reader);
-int disco_info_identity_encode(xmlTextWriterPtr writer, struct disco_info_identity_t* data);
+int disco_info_identity_encode(xmlWriter_t* writer, struct disco_info_identity_t* data);
 struct disco_info_feature_t* disco_info_feature_decode(xmlTextReaderPtr reader);
-int disco_info_feature_encode(xmlTextWriterPtr writer, struct disco_info_feature_t* data);
+int disco_info_feature_encode(xmlWriter_t* writer, struct disco_info_feature_t* data);
 
 #endif

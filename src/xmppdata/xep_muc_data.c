@@ -36,19 +36,20 @@ elm->fHistory.fSince = datetime_parse (avalue);
   } // for end part 1
   else if ((strcmp ((char*) name, "password") == 0) && (strcmp ((char*) namespace, ns_muc) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fPassword = (value);
+elm->fPassword = (const char*) value;
   } // for end part 1
   } // while end
   return elm;
 }
 
-int muc_enter_encode(xmlTextWriterPtr writer, struct muc_enter_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "x", BAD_CAST ns_muc) == -1)
- return -1;
+int muc_enter_encode(xmlWriter_t* writer, struct muc_enter_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_muc, "x");
+if (err != 0) return err;
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -67,11 +68,11 @@ struct muc_user_invite_t* newel = muc_user_invite_decode(reader);
   if (newel == NULL) {
     return NULL;
   }
-  llist_append((llist_t*)elm->fInvite, (void*) newel, EXTENSION_TYPE_MUC_USER_INVITE);
+  vlist_append ((vlist_t**)&elm->fInvite, (void*) newel, EXTENSION_TYPE_MUC_USER_INVITE);
   }
   else if ((strcmp ((char*) name, "password") == 0) && (strcmp ((char*) namespace, ns_muc_user) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fPassword = (value);
+elm->fPassword = (const char*) value;
   } // for end part 1
   else if ((strcmp ((char*) namespace, ns_muc_user) == 0) && (strcmp ((char*) name, "status") == 0)) {
 //here
@@ -79,23 +80,24 @@ struct muc_user_status_t* newel = muc_user_status_decode(reader);
   if (newel == NULL) {
     return NULL;
   }
-  llist_append((llist_t*)elm->fStatus, (void*) newel, EXTENSION_TYPE_MUC_USER_STATUS);
+  vlist_append ((vlist_t**)&elm->fStatus, (void*) newel, EXTENSION_TYPE_MUC_USER_STATUS);
   }
   } // while end
   return elm;
 }
 
-int muc_user_action_encode(xmlTextWriterPtr writer, struct muc_user_action_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "x", BAD_CAST ns_muc_user) == -1)
- return -1;
+int muc_user_action_encode(xmlWriter_t* writer, struct muc_user_action_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_muc_user, "x");
+if (err != 0) return err;
 //here condition
 //here condition
 //here condition
 //here condition
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -111,15 +113,16 @@ struct muc_user_status_t* muc_user_status_decode(xmlTextReaderPtr reader) {
   return elm;
 }
 
-int muc_user_status_encode(xmlTextWriterPtr writer, struct muc_user_status_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "status", BAD_CAST ns_muc_user) == -1)
- return -1;
+int muc_user_status_encode(xmlWriter_t* writer, struct muc_user_status_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_muc_user, "status");
+if (err != 0) return err;
 if (elm->fCode != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "code", BAD_CAST "ns_muc_user", strconv_format_int(elm->fCode)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_muc_user, "code", strconv_format_int(elm->fCode));
+if (err != 0) return err;
 }
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -147,26 +150,27 @@ const xmlChar* namespace = xmlTextReaderConstNamespaceUri (reader);
 const xmlChar* name = xmlTextReaderConstName (reader);
  if ((strcmp ((char*) name, "reason") == 0) && (strcmp ((char*) namespace, ns_muc_user) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fReason = (value);
+elm->fReason = (const char*) value;
   } // for end part 1
   } // while end
   return elm;
 }
 
-int muc_user_decline_encode(xmlTextWriterPtr writer, struct muc_user_decline_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "decline", BAD_CAST ns_muc_user) == -1)
- return -1;
+int muc_user_decline_encode(xmlWriter_t* writer, struct muc_user_decline_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_muc_user, "decline");
+if (err != 0) return err;
 if (elm->fFrom != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "from", BAD_CAST "ns_muc_user", BAD_CAST jid_to_string(elm->fFrom)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_muc_user, "from", jid_to_string(elm->fFrom));
+if (err != 0) return err;
 }
 if (elm->fTo != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "to", BAD_CAST "ns_muc_user", BAD_CAST jid_to_string(elm->fTo)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_muc_user, "to", jid_to_string(elm->fTo));
+if (err != 0) return err;
 }
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -188,22 +192,23 @@ const xmlChar* namespace = xmlTextReaderConstNamespaceUri (reader);
 const xmlChar* name = xmlTextReaderConstName (reader);
  if ((strcmp ((char*) name, "reason") == 0) && (strcmp ((char*) namespace, ns_muc_user) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fReason = (value);
+elm->fReason = (const char*) value;
   } // for end part 1
   } // while end
   return elm;
 }
 
-int muc_user_destroy_encode(xmlTextWriterPtr writer, struct muc_user_destroy_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "destroy", BAD_CAST ns_muc_user) == -1)
- return -1;
+int muc_user_destroy_encode(xmlWriter_t* writer, struct muc_user_destroy_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_muc_user, "destroy");
+if (err != 0) return err;
 if (elm->fJid != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "jid", BAD_CAST "ns_muc_user", BAD_CAST jid_to_string(elm->fJid)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_muc_user, "jid", jid_to_string(elm->fJid));
+if (err != 0) return err;
 }
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -231,26 +236,27 @@ const xmlChar* namespace = xmlTextReaderConstNamespaceUri (reader);
 const xmlChar* name = xmlTextReaderConstName (reader);
  if ((strcmp ((char*) name, "reason") == 0) && (strcmp ((char*) namespace, ns_muc_user) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fReason = (value);
+elm->fReason = (const char*) value;
   } // for end part 1
   } // while end
   return elm;
 }
 
-int muc_user_invite_encode(xmlTextWriterPtr writer, struct muc_user_invite_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "invite", BAD_CAST ns_muc_user) == -1)
- return -1;
+int muc_user_invite_encode(xmlWriter_t* writer, struct muc_user_invite_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_muc_user, "invite");
+if (err != 0) return err;
 if (elm->fFrom != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "from", BAD_CAST "ns_muc_user", BAD_CAST jid_to_string(elm->fFrom)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_muc_user, "from", jid_to_string(elm->fFrom));
+if (err != 0) return err;
 }
 if (elm->fTo != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "to", BAD_CAST "ns_muc_user", BAD_CAST jid_to_string(elm->fTo)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_muc_user, "to", jid_to_string(elm->fTo));
+if (err != 0) return err;
 }
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -272,7 +278,7 @@ elm->fAffiliation = enum_muc_user_item_affiliation_from_string(avalue);
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "nick");
   if (avalue != NULL) {
-  elm->fNick = avalue;
+  elm->fNick = (const char*)avalue;
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "role");
   if (avalue != NULL) {
@@ -296,7 +302,7 @@ const xmlChar* name = xmlTextReaderConstName (reader);
   } // for end part 1
   else if ((strcmp ((char*) name, "reason") == 0) && (strcmp ((char*) namespace, ns_muc_user) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fReason = (value);
+elm->fReason = (const char*) value;
   } // for end part 1
   else if ((strcmp ((char*) name, "continue") == 0) && (strcmp ((char*) namespace, ns_muc_user) == 0)) {
     elm->fContinue = true;
@@ -309,43 +315,44 @@ elm->fReason = (value);
   return elm;
 }
 
-int muc_user_item_encode(xmlTextWriterPtr writer, struct muc_user_item_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "item", BAD_CAST ns_muc_user) == -1)
- return -1;
+int muc_user_item_encode(xmlWriter_t* writer, struct muc_user_item_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_muc_user, "item");
+if (err != 0) return err;
 if (elm->fAffiliation != 0) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "affiliation", BAD_CAST "ns_muc_user", BAD_CAST elm->fAffiliation) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_muc_user, "affiliation", enum_muc_user_item_affiliation_to_string(elm->fAffiliation));
+if (err != 0) return err;
 }
 if (elm->fJid != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "jid", BAD_CAST "ns_muc_user", BAD_CAST jid_to_string(elm->fJid)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_muc_user, "jid", jid_to_string(elm->fJid));
+if (err != 0) return err;
 }
 if (elm->fNick != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "nick", BAD_CAST "ns_muc_user", elm->fNick) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_muc_user, "nick", elm->fNick);
+if (err != 0) return err;
 }
 if (elm->fRole != 0) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "role", BAD_CAST "ns_muc_user", BAD_CAST elm->fRole) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_muc_user, "role", enum_muc_user_item_role_to_string(elm->fRole));
+if (err != 0) return err;
 }
 //here condition
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
 enum muc_user_item_affiliation_t enum_muc_user_item_affiliation_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_muc_user_item_affiliation_to_string(enum muc_user_item_affiliation_t value) {
+const char* enum_muc_user_item_affiliation_to_string(enum muc_user_item_affiliation_t value) {
 return NULL;
 }
 enum muc_user_item_role_t enum_muc_user_item_role_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_muc_user_item_role_to_string(enum muc_user_item_role_t value) {
+const char* enum_muc_user_item_role_to_string(enum muc_user_item_role_t value) {
 return NULL;
 }
 muc_owner_configure_t* muc_owner_configure_decode(xmlTextReaderPtr reader) {
@@ -363,7 +370,7 @@ if ((strcmp ((char*) namespace, "jabber:x:data") == 0) && (strcmp ((char *) name
     return NULL;
   }
 // here?
-elm = (muc_owner_configure_t*)(newel);
+elm = (muc_owner_configure_t*)newel;
 } else {
 if (xstream_skip(reader) != 0) {
     return NULL;
@@ -373,7 +380,8 @@ if (xstream_skip(reader) != 0) {
   return elm;
 }
 
-int muc_owner_configure_encode(xmlTextWriterPtr writer, muc_owner_configure_t* elm) {
+int muc_owner_configure_encode(xmlWriter_t* writer, muc_owner_configure_t* elm) {
+int err = 0;
   return 0;
 }
 
@@ -392,18 +400,19 @@ struct muc_admin_item_t* newel = muc_admin_item_decode(reader);
   if (newel == NULL) {
     return NULL;
   }
-  llist_append((llist_t*)elm->fItems, (void*) newel, EXTENSION_TYPE_MUC_ADMIN_ITEM);
+  vlist_append ((vlist_t**)&elm->fItems, (void*) newel, EXTENSION_TYPE_MUC_ADMIN_ITEM);
   }
   } // while end
   return elm;
 }
 
-int muc_admin_query_encode(xmlTextWriterPtr writer, struct muc_admin_query_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "query", BAD_CAST ns_muc_admin) == -1)
- return -1;
+int muc_admin_query_encode(xmlWriter_t* writer, struct muc_admin_query_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_muc_admin, "query");
+if (err != 0) return err;
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
@@ -425,7 +434,7 @@ elm->fAffiliation = enum_muc_admin_item_affiliation_from_string(avalue);
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "nick");
   if (avalue != NULL) {
-  elm->fNick = avalue;
+  elm->fNick = (const char*)avalue;
   }
   avalue = xmlTextReaderGetAttribute (reader, (const xmlChar*) "role");
   if (avalue != NULL) {
@@ -449,47 +458,48 @@ const xmlChar* name = xmlTextReaderConstName (reader);
   } // for end part 1
   else if ((strcmp ((char*) name, "reason") == 0) && (strcmp ((char*) namespace, ns_muc_admin) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fReason = (value);
+elm->fReason = (const char*) value;
   } // for end part 1
   } // while end
   return elm;
 }
 
-int muc_admin_item_encode(xmlTextWriterPtr writer, struct muc_admin_item_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "item", BAD_CAST ns_muc_admin) == -1)
- return -1;
+int muc_admin_item_encode(xmlWriter_t* writer, struct muc_admin_item_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_muc_admin, "item");
+if (err != 0) return err;
 if (elm->fAffiliation != 0) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "affiliation", BAD_CAST "ns_muc_admin", BAD_CAST elm->fAffiliation) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_muc_admin, "affiliation", enum_muc_admin_item_affiliation_to_string(elm->fAffiliation));
+if (err != 0) return err;
 }
 if (elm->fJid != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "jid", BAD_CAST "ns_muc_admin", BAD_CAST jid_to_string(elm->fJid)) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_muc_admin, "jid", jid_to_string(elm->fJid));
+if (err != 0) return err;
 }
 if (elm->fNick != NULL) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "nick", BAD_CAST "ns_muc_admin", elm->fNick) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_muc_admin, "nick", elm->fNick);
+if (err != 0) return err;
 }
 if (elm->fRole != 0) {
-if (xmlTextWriterWriteAttributeNS(writer, BAD_CAST "", BAD_CAST "role", BAD_CAST "ns_muc_admin", BAD_CAST elm->fRole) == -1)
- return -1;
+err = xmlwriter_attribute (writer, ns_muc_admin, "role", enum_muc_admin_item_role_to_string(elm->fRole));
+if (err != 0) return err;
 }
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 
 enum muc_admin_item_affiliation_t enum_muc_admin_item_affiliation_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_muc_admin_item_affiliation_to_string(enum muc_admin_item_affiliation_t value) {
+const char* enum_muc_admin_item_affiliation_to_string(enum muc_admin_item_affiliation_t value) {
 return NULL;
 }
 enum muc_admin_item_role_t enum_muc_admin_item_role_from_string(const xmlChar *value) {
 return 0;
 }
-xmlChar *enum_muc_admin_item_role_to_string(enum muc_admin_item_role_t value) {
+const char* enum_muc_admin_item_role_to_string(enum muc_admin_item_role_t value) {
 return NULL;
 }

@@ -2,7 +2,7 @@
 #define  _STARTTLS_DATA_H_
 
 #include <libxml/xmlreader.h>
-#include <libxml/xmlwriter.h>
+#include "xmlwriter.h"
 #include <string.h>
 #include "xstream.h"
 #include "types.h"
@@ -25,9 +25,9 @@ struct starttls_failure_t {
 
 
 struct starttls_starttls_t* starttls_starttls_decode(xmlTextReaderPtr reader);
-int starttls_starttls_encode(xmlTextWriterPtr writer, struct starttls_starttls_t* data);
+int starttls_starttls_encode(xmlWriter_t* writer, struct starttls_starttls_t* data);
 struct starttls_proceed_t* starttls_proceed_decode(xmlTextReaderPtr reader);
-int starttls_proceed_encode(xmlTextWriterPtr writer, struct starttls_proceed_t* data);
+int starttls_proceed_encode(xmlWriter_t* writer, struct starttls_proceed_t* data);
 struct starttls_failure_t* starttls_failure_decode(xmlTextReaderPtr reader);
-int starttls_failure_encode(xmlTextWriterPtr writer, struct starttls_failure_t* data);
+int starttls_failure_encode(xmlWriter_t* writer, struct starttls_failure_t* data);
 #endif

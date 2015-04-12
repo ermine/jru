@@ -13,28 +13,29 @@ const xmlChar* namespace = xmlTextReaderConstNamespaceUri (reader);
 const xmlChar* name = xmlTextReaderConstName (reader);
  if ((strcmp ((char*) name, "name") == 0) && (strcmp ((char*) namespace, ns_iqversion) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fName = (value);
+elm->fName = (const char*) value;
   } // for end part 1
   else if ((strcmp ((char*) name, "version") == 0) && (strcmp ((char*) namespace, ns_iqversion) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fVersion = (value);
+elm->fVersion = (const char*) value;
   } // for end part 1
   else if ((strcmp ((char*) name, "os") == 0) && (strcmp ((char*) namespace, ns_iqversion) == 0)) {
 const xmlChar *value = xmlTextReaderConstValue (reader);
-elm->fOs = (value);
+elm->fOs = (const char*) value;
   } // for end part 1
   } // while end
   return elm;
 }
 
-int iqversion_version_encode(xmlTextWriterPtr writer, struct iqversion_version_t* elm) {
-if (xmlTextWriterStartElementNS(writer, NULL, BAD_CAST "query", BAD_CAST ns_iqversion) == -1)
- return -1;
+int iqversion_version_encode(xmlWriter_t* writer, struct iqversion_version_t* elm) {
+int err = 0;
+err = xmlwriter_start_element (writer, ns_iqversion, "query");
+if (err != 0) return err;
 //here condition
 //here condition
 //here condition
-if (xmlTextWriterEndElement(writer) == -1)
-  return -1;
+err = xmlwriter_end_element(writer);
+if (err != 0) return err;
   return 0;
 }
 

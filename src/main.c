@@ -25,16 +25,13 @@ int main(int argc, char* argv[]) {
       }
     }
       
-    char* msg = "<dd/>";
-    size_t ret = write (sock, msg, strlen(msg));
-    if (ret < 0) {
-      perror ("write");
-      goto failure;
+    xmlWriter_t* writer = xstream_writer_init(sock);
+    xmlTextReaderPtr reader = xstream_reader_init(sock);
+    if (writer != NULL && reader != NULL) {
+      xstream_read (reader);
     } else {
-      printf ("sent %d\n", (int) ret);
+      printf ("Unable to open\n");
     }
-
-    xstream_read (sock);
 
     config_destroy (config);
     return 0;

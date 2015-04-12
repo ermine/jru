@@ -30,14 +30,14 @@ uint64_t *strconv_parse_int64 (const xmlChar* value) {
   return ret;
 }
 
-const xmlChar* strconv_format_boolean(boolean_t* value) {
+const char* strconv_format_boolean(boolean_t* value) {
   return NULL;
 }
 
-const xmlChar* strconv_format_int(int32_t* value) {
+const char* strconv_format_int(int32_t* value) {
   return NULL;
 }
 
-const xmlChar* strconv_format_uint(uint32_t* value) {
+const char* strconv_format_uint(uint32_t* value) {
   return NULL;
 }

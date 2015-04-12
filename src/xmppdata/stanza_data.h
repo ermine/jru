@@ -2,7 +2,7 @@
 #define  _STANZA_DATA_H_
 
 #include <libxml/xmlreader.h>
-#include <libxml/xmlwriter.h>
+#include "xmlwriter.h"
 #include <string.h>
 #include "xstream.h"
 #include "types.h"
@@ -37,17 +37,17 @@ enum stanza_error_condition_name_t {
 };
 
 enum stanza_error_condition_name_t enum_stanza_error_condition_name_from_string(const xmlChar *value);
-xmlChar *enum_stanza_error_condition_name_to_string(enum stanza_error_condition_name_t);
+const char* enum_stanza_error_condition_name_to_string(enum stanza_error_condition_name_t);
 
 struct stanza_error_t {
   langstring_t * fText;
  struct stanza_condition_set_t {
   enum stanza_error_condition_name_t fName;
-  const xmlChar * fExtra;
+  const char* fExtra;
 } fCondition;
 };
 
 
 struct stanza_error_t* stanza_error_decode(xmlTextReaderPtr reader);
-int stanza_error_encode(xmlTextWriterPtr writer, struct stanza_error_t* data);
+int stanza_error_encode(xmlWriter_t* writer, struct stanza_error_t* data);
 #endif

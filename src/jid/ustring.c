@@ -2,12 +2,13 @@
 #include <string.h>
 
 #include "ustring.h"
+#include "helpers.h"
 
 #define MalformedUTF8 -1
 #define MalformedUnicode -2
 
 
-static uint8_t utf8_width (uint32_t u) {
+static uint8_t utf8_width_of_uint32 (uint32_t u) {
   if (u < 0x80)
     return 1;
   else if (u < 0x800)
@@ -19,30 +20,35 @@ static uint8_t utf8_width (uint32_t u) {
   return MalformedUnicode;
 }
 
+int utf8_width (const uint8_t ch) {
+  if (ch >= 000 && ch < 128)
+    return 1;
+  else if (ch > 191 && ch < 224) {
+    return 2;
+  } else if (ch > 223 && ch < 240) {
+    return 3;
+  } else if (ch > 239 && ch < 248) {
+    return 4;
+  } else
+    return MalformedUTF8;
+}
+  
 int decode_utf8 (ustring_t *ustring, const char *str, const size_t len) {
-  if (ustring == NULL || ustring->ucs4 != NULL)
-    return -3;
+  if (ustring == NULL)
+    fatal ("decode_utf8: ustring is null");
+  if  (ustring->ucs4 != NULL)
+    fatal ("decode_utf8: ustring->ucs4 is not null");
   
   int i = 0;
   int ulen = 0;
   
-  for (i = 0; i < len; i++) {
-    uint8_t ch = (uint8_t) str[i];
-    if (ch >= 000 && ch < 128)
-      ulen++;
-    else if (ch > 191 && ch < 224) {
-      i++;
-      ulen++;
-    } else if (ch > 223 && ch < 240) {
-      i += 2;
-      ulen++;
-    } else if (ch > 239 && ch < 248) {
-      i += 3;
-      ulen++;
-    } else
-      return MalformedUTF8;
+  for (i = 0; i < len; ) {
+    int width = utf8_width ((uint8_t) str[i]);
+    if (width < 1) return width;
+    ulen += width;
+    i += width;
   }
-
+    
   ustring->ucs4 = malloc (sizeof (uint32_t) * ulen);
   if (ustring->ucs4 == NULL)
     return -3;
@@ -93,11 +99,13 @@ int encode_ustring (ustring_t *ustring, char **str) {
   int i = 0;
   int len = 0;
 
-  if (ustring == NULL || ustring->ucs4 == NULL || ustring->len == 0)
-    return -1;
+  if (ustring == NULL)
+    fatal ("encode_ustring: ustring is null");
+  if (ustring->ucs4 == NULL || ustring->len == 0)
+    fatal ("encode_ustring: ustring->ucs4 is null");
 
   for (i = 0; i < ustring->len; i++) {
-    int width = utf8_width (ustring->ucs4[i]);
+    int width = utf8_width_of_uint32 (ustring->ucs4[i]);
     if (width < 1)
       return width;
     len += width;
@@ -141,8 +149,11 @@ void ustring_free (ustring_t *ustring) {
 }
 
 void ustring_print_hex (ustring_t *ustring) {
-  if (ustring == NULL || ustring->ucs4 == NULL)
-    return;
+  if (ustring == NULL)
+    fatal ("ustring_print_hex: ustring is null");
+  if (ustring->ucs4 == NULL)
+    fatal ("ustring_print_hex: ustring->ucs4 is null");
+
   int i = 0;
   for (i = 0; i < ustring->len; i++)
     printf("%04X ", ustring->ucs4[i]);
@@ -151,8 +162,10 @@ void ustring_print_hex (ustring_t *ustring) {
 }
 
 void ustring_print (ustring_t *ustring) {
-  if (ustring == NULL || ustring->ucs4 == NULL)
-    return;
+  if (ustring == NULL)
+    fatal ("ustring_print: ustring is null");
+  if (ustring->ucs4 == NULL)
+    fatal ("ustring_print: ustring->ucs4 is null");
   
   char *result = NULL;
   size_t ret = encode_ustring (ustring, &result);
