@@ -1,5 +1,5 @@
-CFLAGS=-Wall -ggdb `pkg-config --cflags yaml-0.1 libxml-2.0` -I src
-LDFLAGS=-lresolv `pkg-config --libs yaml-0.1 libxml-2.0`
+CFLAGS=-Wall -ggdb `pkg-config --cflags yaml-0.1 openssl` -I src
+LDFLAGS=-lresolv `pkg-config --libs yaml-0.1 openssl`
 
 SOURCES=$(wildcard src/**/*.c src/*.c) 
 OBJECTS=$(patsubst %.c,%.o,$(SOURCES))

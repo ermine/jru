@@ -1,7 +1,7 @@
 #ifndef _XEP_MUC_DATA_H_
 #define  _XEP_MUC_DATA_H_
 
-#include <libxml/xmlreader.h>
+#include "xmlreader.h"
 #include "xmlwriter.h"
 #include <string.h>
 #include "xstream.h"
@@ -16,26 +16,29 @@ struct muc_user_item_t;
 struct muc_admin_item_t;
 struct muc_user_status_t;
 
-extern const char* ns_muc;
-extern const char* ns_muc_user;
-extern const char* ns_muc_owner;
-extern const char* ns_muc_admin;
+extern const char *ns_muc;
+extern const char *ns_muc_user;
+extern const char *ns_muc_owner;
+extern const char *ns_muc_admin;
 
 
-struct muc_enter_t {
- struct muc_history_set_t {
-  int * fMaxchars;
-  int * fMaxstanzas;
-  int * fSeconds;
-  struct tm* fSince;
-} fHistory;
-  const char* fPassword;
+struct muc_enter_t
+{
+  struct muc_history_set_t
+  {
+    int *fMaxchars;
+    int *fMaxstanzas;
+    int *fSeconds;
+    struct tm *fSince;
+  } fHistory;
+  const char *fPassword;
 };
 
 
-struct muc_enter_t* muc_enter_decode(xmlTextReaderPtr reader);
-int muc_enter_encode(xmlWriter_t* writer, struct muc_enter_t* data);
-enum muc_user_item_affiliation_t {
+struct muc_enter_t *muc_enter_decode (xmlreader_t * reader);
+int muc_enter_encode (xmlwriter_t * writer, struct muc_enter_t *data);
+enum muc_user_item_affiliation_t
+{
   MUC_USER_ITEM_AFFILIATION_ADMIN,
   MUC_USER_ITEM_AFFILIATION_MEMBER,
   MUC_USER_ITEM_AFFILIATION_NONE,
@@ -43,85 +46,103 @@ enum muc_user_item_affiliation_t {
   MUC_USER_ITEM_AFFILIATION_OWNER,
 };
 
-enum muc_user_item_affiliation_t enum_muc_user_item_affiliation_from_string(const xmlChar *value);
-const char* enum_muc_user_item_affiliation_to_string(enum muc_user_item_affiliation_t);
-enum muc_user_item_role_t {
+enum muc_user_item_affiliation_t
+enum_muc_user_item_affiliation_from_string (const char *value);
+const char *enum_muc_user_item_affiliation_to_string (enum
+						      muc_user_item_affiliation_t);
+enum muc_user_item_role_t
+{
   MUC_USER_ITEM_ROLE_MODERATOR,
   MUC_USER_ITEM_ROLE_NONE,
   MUC_USER_ITEM_ROLE_PARTICIPANT,
   MUC_USER_ITEM_ROLE_VISITOR,
 };
 
-enum muc_user_item_role_t enum_muc_user_item_role_from_string(const xmlChar *value);
-const char* enum_muc_user_item_role_to_string(enum muc_user_item_role_t);
+enum muc_user_item_role_t enum_muc_user_item_role_from_string (const char
+							       *value);
+const char *enum_muc_user_item_role_to_string (enum muc_user_item_role_t);
 
-struct muc_user_action_t {
-  struct muc_user_decline_t* fDecline;
-  struct muc_user_destroy_t* fDestroy;
+struct muc_user_action_t
+{
+  struct muc_user_decline_t *fDecline;
+  struct muc_user_destroy_t *fDestroy;
   vlist_t *fInvite;
-  struct muc_user_item_t* fItem;
-  const char* fPassword;
+  struct muc_user_item_t *fItem;
+  const char *fPassword;
   vlist_t *fStatus;
 };
 
 
-struct muc_user_status_t {
-  int * fCode;
+struct muc_user_status_t
+{
+  int *fCode;
 };
 
 
-struct muc_user_decline_t {
-  jid_t * fFrom;
-  jid_t * fTo;
-  const char* fReason;
+struct muc_user_decline_t
+{
+  jid_t *fFrom;
+  jid_t *fTo;
+  const char *fReason;
 };
 
 
-struct muc_user_destroy_t {
-  jid_t * fJid;
-  const char* fReason;
+struct muc_user_destroy_t
+{
+  jid_t *fJid;
+  const char *fReason;
 };
 
 
-struct muc_user_invite_t {
-  jid_t * fFrom;
-  jid_t * fTo;
-  const char* fReason;
+struct muc_user_invite_t
+{
+  jid_t *fFrom;
+  jid_t *fTo;
+  const char *fReason;
 };
 
 
-struct muc_user_item_t {
+struct muc_user_item_t
+{
   enum muc_user_item_affiliation_t fAffiliation;
-  jid_t * fJid;
-  const char* fNick;
+  jid_t *fJid;
+  const char *fNick;
   enum muc_user_item_role_t fRole;
- struct muc_user_actor_set_t {
-  jid_t * fJid;
-} fActor;
-  const char* fReason;
-  boolean_t fContinue;
+  struct muc_user_actor_set_t
+  {
+    jid_t *fJid;
+  } fActor;
+  const char *fReason;
+  bool fContinue;
 };
 
 
-struct muc_user_action_t* muc_user_action_decode(xmlTextReaderPtr reader);
-int muc_user_action_encode(xmlWriter_t* writer, struct muc_user_action_t* data);
-struct muc_user_status_t* muc_user_status_decode(xmlTextReaderPtr reader);
-int muc_user_status_encode(xmlWriter_t* writer, struct muc_user_status_t* data);
-struct muc_user_decline_t* muc_user_decline_decode(xmlTextReaderPtr reader);
-int muc_user_decline_encode(xmlWriter_t* writer, struct muc_user_decline_t* data);
-struct muc_user_destroy_t* muc_user_destroy_decode(xmlTextReaderPtr reader);
-int muc_user_destroy_encode(xmlWriter_t* writer, struct muc_user_destroy_t* data);
-struct muc_user_invite_t* muc_user_invite_decode(xmlTextReaderPtr reader);
-int muc_user_invite_encode(xmlWriter_t* writer, struct muc_user_invite_t* data);
-struct muc_user_item_t* muc_user_item_decode(xmlTextReaderPtr reader);
-int muc_user_item_encode(xmlWriter_t* writer, struct muc_user_item_t* data);
+struct muc_user_action_t *muc_user_action_decode (xmlreader_t * reader);
+int muc_user_action_encode (xmlwriter_t * writer,
+			    struct muc_user_action_t *data);
+struct muc_user_status_t *muc_user_status_decode (xmlreader_t * reader);
+int muc_user_status_encode (xmlwriter_t * writer,
+			    struct muc_user_status_t *data);
+struct muc_user_decline_t *muc_user_decline_decode (xmlreader_t * reader);
+int muc_user_decline_encode (xmlwriter_t * writer,
+			     struct muc_user_decline_t *data);
+struct muc_user_destroy_t *muc_user_destroy_decode (xmlreader_t * reader);
+int muc_user_destroy_encode (xmlwriter_t * writer,
+			     struct muc_user_destroy_t *data);
+struct muc_user_invite_t *muc_user_invite_decode (xmlreader_t * reader);
+int muc_user_invite_encode (xmlwriter_t * writer,
+			    struct muc_user_invite_t *data);
+struct muc_user_item_t *muc_user_item_decode (xmlreader_t * reader);
+int muc_user_item_encode (xmlwriter_t * writer, struct muc_user_item_t *data);
 
-typedef struct xdata_x_t* muc_owner_configure_t;
+typedef struct xdata_x_t *muc_owner_configure_t;
 
 
-muc_owner_configure_t* muc_owner_configure_decode(xmlTextReaderPtr reader);
-int muc_owner_configure_encode(xmlWriter_t* writer, muc_owner_configure_t* data);
-enum muc_admin_item_affiliation_t {
+muc_owner_configure_t *muc_owner_configure_decode (xmlreader_t * reader);
+int muc_owner_configure_encode (xmlwriter_t * writer,
+				muc_owner_configure_t * data);
+enum muc_admin_item_affiliation_t
+{
   MUC_ADMIN_ITEM_AFFILIATION_ADMIN,
   MUC_ADMIN_ITEM_AFFILIATION_MEMBER,
   MUC_ADMIN_ITEM_AFFILIATION_NONE,
@@ -129,37 +150,46 @@ enum muc_admin_item_affiliation_t {
   MUC_ADMIN_ITEM_AFFILIATION_OWNER,
 };
 
-enum muc_admin_item_affiliation_t enum_muc_admin_item_affiliation_from_string(const xmlChar *value);
-const char* enum_muc_admin_item_affiliation_to_string(enum muc_admin_item_affiliation_t);
-enum muc_admin_item_role_t {
+enum muc_admin_item_affiliation_t
+enum_muc_admin_item_affiliation_from_string (const char *value);
+const char *enum_muc_admin_item_affiliation_to_string (enum
+						       muc_admin_item_affiliation_t);
+enum muc_admin_item_role_t
+{
   MUC_ADMIN_ITEM_ROLE_MODERATOR,
   MUC_ADMIN_ITEM_ROLE_NONE,
   MUC_ADMIN_ITEM_ROLE_PARTICIPANT,
   MUC_ADMIN_ITEM_ROLE_VISITOR,
 };
 
-enum muc_admin_item_role_t enum_muc_admin_item_role_from_string(const xmlChar *value);
-const char* enum_muc_admin_item_role_to_string(enum muc_admin_item_role_t);
+enum muc_admin_item_role_t enum_muc_admin_item_role_from_string (const char
+								 *value);
+const char *enum_muc_admin_item_role_to_string (enum muc_admin_item_role_t);
 
-struct muc_admin_query_t {
+struct muc_admin_query_t
+{
   vlist_t *fItems;
 };
 
 
-struct muc_admin_item_t {
+struct muc_admin_item_t
+{
   enum muc_admin_item_affiliation_t fAffiliation;
-  jid_t * fJid;
-  const char* fNick;
+  jid_t *fJid;
+  const char *fNick;
   enum muc_admin_item_role_t fRole;
- struct muc_admin_actor_set_t {
-  jid_t * fJid;
-} fActor;
-  const char* fReason;
+  struct muc_admin_actor_set_t
+  {
+    jid_t *fJid;
+  } fActor;
+  const char *fReason;
 };
 
 
-struct muc_admin_query_t* muc_admin_query_decode(xmlTextReaderPtr reader);
-int muc_admin_query_encode(xmlWriter_t* writer, struct muc_admin_query_t* data);
-struct muc_admin_item_t* muc_admin_item_decode(xmlTextReaderPtr reader);
-int muc_admin_item_encode(xmlWriter_t* writer, struct muc_admin_item_t* data);
+struct muc_admin_query_t *muc_admin_query_decode (xmlreader_t * reader);
+int muc_admin_query_encode (xmlwriter_t * writer,
+			    struct muc_admin_query_t *data);
+struct muc_admin_item_t *muc_admin_item_decode (xmlreader_t * reader);
+int muc_admin_item_encode (xmlwriter_t * writer,
+			   struct muc_admin_item_t *data);
 #endif

@@ -2,31 +2,39 @@
 #include <string.h>
 #include <string.h>
 #include "jid.h"
+#include "helpers.h"
+#include "xmpp_prep.h"
 
 jid_t *jid_of_string (const char *str) {
-  char *node = NULL, *domain = NULL, *resource = NULL, *tmp = NULL;
-  char *p = NULL;
-
-  p = strchr (str, '@');
-  tmp = (char *)str;
-
-  if (p != NULL) {
-    node = strndup (str, (p - str));
-    tmp = ++p;
-  }
+  char* node = NULL;
+  char* domain = NULL;
+  char* resource = NULL;
   
-  p = strchr (tmp, '/');
-  if (p != NULL) {
-    domain = strndup (tmp, (p - tmp));
-    resource = strdup (++p);
-  } else {
-    domain = strdup (tmp);
-  }
+  int len = strlen (str);
+  char* end = NULL;
+  
+  end = strchr (str, '/');
+  if (end != NULL) {
+    if (*(end+1) != '\0')
+      resource = strdup (end+1);
+  } else
+    end = str+len;
+
+  char* at = memchr (str, '@', end - str);
+  if (at != NULL) {
+    node = strndup (str, at - str);
+    domain = strndup (at+1, end - at - 1);
+  } else
+    domain = strndup (str, end - str);
 
   jid_t *jid = malloc (sizeof (jid_t));
+  if (jid == NULL)
+    fatal ("jid_of_string: malloc failed");
+  
   jid->node = node;
   jid->domain = domain;
   jid->resource = resource;
+  jid->full = NULL;
 
   return jid;
 }
@@ -49,6 +57,9 @@ void jid_free (jid_t *jid) {
 }
 
 char* jid_to_string (jid_t *jid) {
+  if (jid == NULL)
+    fatal ("jid_to_string is null");
+  
   if (jid->full != NULL)
     return jid->full;
   int len_domain = strlen (jid->domain);
@@ -60,6 +71,8 @@ char* jid_to_string (jid_t *jid) {
     len_resource = strlen (jid->resource) + 1;
       
   jid->full = malloc (sizeof (char) * (len_domain + len_node + len_resource + 1));
+  if (jid->full == NULL)
+    fatal ("jid_to_string: malloc failed");
 
   if (jid->node != NULL) {
     strcpy (jid->full, jid->node);
@@ -74,4 +87,16 @@ char* jid_to_string (jid_t *jid) {
   jid->full[len_node + len_domain + len_resource] = '\0';
 
   return jid->full;
+}
+
+int jid_resourceprep (const char* str, char** result) {
+  ustring_t ustring = { NULL, 0};
+  int err = ustring_decode_utf8 (&ustring, str, strlen (str));
+  if (err != 0) return err;
+  resourceprep (&ustring);
+
+  err = ustring_encode_utf8 (&ustring, result);
+  if (err < 0) return err;
+
+  return 0;
 }

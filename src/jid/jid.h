@@ -12,4 +12,6 @@ jid_t *jid_of_string (const char* str);
 char* jid_to_string (jid_t *jid);
 void jid_free (jid_t *jid);
 
+int jid_resourceprep (const char* str, char** result);
+
 #endif

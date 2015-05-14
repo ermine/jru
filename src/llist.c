@@ -40,3 +40,13 @@ void vlist_append(vlist_t** root, void* data, int type) {
     curr->next = item;
   }
 }
+
+void* vlist_get (vlist_t* root, int type) {
+  vlist_t* curr = root;
+  while (curr != NULL) {
+    if (curr->type == type)
+      return curr->data;
+    curr = curr->next;
+  }
+  return NULL;
+}

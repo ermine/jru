@@ -1,100 +1,243 @@
+#include <stdlib.h>
+
 #include <malloc.h>
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
 #include "bufio.h"
 #include "helpers.h"
+#include "utf8.h"
+#include "errors.h"
 
-bufio_t* bufio_new (int fd) {
-  bufio_t* buf = malloc (sizeof (bufio_t));
-  if (buf == NULL)
-    fatal ("bufio_new: malloc failed");
+bufio_writer_t* bufio_writer_new (int fd) {
+  bufio_writer_t* writer = malloc (sizeof (bufio_writer_t));
+  if (writer == NULL)
+    fatal ("bufio_writer_new: malloc failed");
   
-  buf->fd = fd;
-  buf->buf = malloc (sizeof (unsigned char) * 1024);
-  if (buf->buf == NULL)
-    fatal ("bufio_new: malloc failed");
+  writer->fd = fd;
+  writer->buf = malloc (sizeof (unsigned char) * 1024);
+  if (writer->buf == NULL)
+    fatal ("bufio_writer_new: malloc failed");
   
-  buf->len = buf->pos = 0;
-  return buf;
+  writer->length = 1024;
+  writer->pos = 0;
+  return writer;
 }
 
-void bufio_free (bufio_t* buf) {
-  if (buf == NULL)
+void bufio_writer_free (bufio_writer_t* writer) {
+  if (writer == NULL)
     return;
 
-  free (buf->buf);
-  free (buf);
+  free (writer->buf);
+  free (writer);
 }
 
-int bufio_flush (bufio_t* buf) {
-  if (buf == NULL)
-    fatal ("bufio_flush: buf is null");
+void bufio_writer_reset (bufio_writer_t* writer) {
+  writer->pos = 0;
+}
 
-  if (buf->pos == 0)
+int bufio_writer_flush (bufio_writer_t* writer) {
+  if (writer == NULL)
+    fatal ("bufio_writer_flush: writer is null");
+
+  if (writer->pos == 0)
     return 0;
   
-  size_t sent = write (buf->fd, buf->buf, buf->pos);
+  size_t sent = write (writer->fd, writer->buf, writer->pos);
   if (sent < 0)
     return sent;
   if (sent == 0)
-    return -1;
+    return ERR_IO_CLOSE;
 
-  fwrite (buf->buf, 0, sent, stdout);
+  fwrite ("OUT: ", 1, 5, stdout);
+  fwrite (writer->buf, 1, sent, stdout);
+  fwrite ("\n", 1, 1, stdout);
+  fflush (stdout);
   
-  if (sent < buf->pos) {
-    memmove (buf->buf, buf->buf + sent, buf->pos - sent);
-    buf->pos -= sent;
+  if (sent < writer->pos) {
+    memmove (writer->buf, writer->buf + sent, writer->pos - sent);
+    writer->pos -= sent;
   } else {
-    buf->pos = 0;
+    writer->pos = 0;
   }
       
   return 0;
 }
 
-static int bufio_available (bufio_t* buf) {
-  return buf->len - buf->pos;
+static int bufio_writer_available (bufio_writer_t* writer) {
+  return writer->length - writer->pos;
 }
 
-int bufio_write (bufio_t* buf, int ncount, ...) {
-  if (buf == NULL)
-    fatal ("bufio_write: buf is null");
+int bufio_writer_write (bufio_writer_t* writer, int ncount, ...) {
+  if (writer == NULL)
+    fatal ("bufio_writer_write: writer is null");
 
   va_list arg;
-  va_start(arg, ncount);
+  va_start (arg, ncount);
 
   int i, err;
   
   for (i = 0; i < ncount; i++) {
     char* str = va_arg (arg, char*);
+    if (str == NULL)
+      continue;
     int len = strlen (str);
     int start = 0;
 
-    while (len - start > bufio_available (buf)) {
-      int avl = bufio_available (buf);
-      memmove (buf->buf + buf->pos, str + start, avl);
-      buf->pos += avl;
+    while (len - start > bufio_writer_available (writer)) {
+      int avl = bufio_writer_available (writer);
+      memmove (writer->buf + writer->pos, str + start, avl);
+      writer->pos += avl;
       start += avl;
-      err = bufio_flush (buf);
+      err = bufio_writer_flush (writer);
       if (err != 0) {
         va_end (arg);
         return err;
       }
     }
-    
-    memmove (buf->buf, str + start, len - start);
-    buf->pos += len - start;
+
+    if (len - start > 0) {
+      memmove (writer->buf + writer->pos, str + start, len - start);
+      writer->pos += len - start;
+    }
   }
   va_end (arg);
   return 0;
 }
 
-int bufio_write_len (bufio_t* buf, const char* str, int len) {
-  if (buf == NULL)
-    fatal ("bufio_write_len: buf is null");
+int bufio_writer_write_len (bufio_writer_t* writer, const char* str, int len) {
+  if (writer == NULL)
+    fatal ("bufio_writer_write_len: writer is null");
   
-  memmove (buf->buf + buf->pos, str, len);
-  buf->pos += len;
+  memmove (writer->buf + writer->pos, str, len);
+  writer->pos += len;
 
   return 0;
+}
+
+bufio_reader_t* bufio_reader_new (int fd) {
+  bufio_reader_t* reader = malloc (sizeof (bufio_reader_t));
+  if (reader == NULL)
+    fatal ("bufio_reader_new: malloc failed");
+  
+  reader->fd = fd;
+  reader->err = 0;
+  reader->buf = malloc (sizeof (unsigned char) * 1024);
+  if (reader->buf == NULL)
+    fatal ("bufio_reader_new: malloc failed");
+  
+  reader->length = 1024;
+  reader->read_pos = reader->write_pos = 0;
+  return reader;
+  
+}
+
+void bufio_reader_free (bufio_reader_t* reader) {
+  if (reader == NULL)
+    return;
+
+  free (reader->buf);
+  free (reader);
+}
+
+void bufio_reader_reset (bufio_reader_t* reader) {
+  reader->err = 0;
+  reader->read_pos = reader->write_pos = 0;
+}  
+
+
+static int bufio_reader_fill (bufio_reader_t* reader) {
+  if (reader->read_pos > 0) {
+    memmove (reader->buf, reader->buf + reader->read_pos, reader->write_pos - reader->read_pos);
+      reader->write_pos -= reader->read_pos;
+      reader->read_pos = 0;
+    }
+
+  if (reader->write_pos == reader->length)
+    fatal ("bufio_reader_fill: buffer is full");
+    
+  size_t ret = read (reader->fd, reader->buf + reader->write_pos,
+                     reader->length - reader->write_pos);
+  if (ret < 0)
+    return ret;
+  if (ret == 0)
+    return ERR_IO_CLOSE;
+
+  fwrite ("IN: ", 1, 4, stdout);
+  fwrite (reader->buf + reader->write_pos, 1, ret, stdout);
+  fwrite ("\n", 1, 1, stdout);
+  fflush (stdout);
+  
+  reader->write_pos += ret;
+  return 0;
+}
+
+uint8_t bufio_reader_readbyte (bufio_reader_t* reader) {
+  if (reader == NULL)
+    fatal ("bufio_reader_readbyte: reader is null");
+
+  if (reader->read_pos == reader->write_pos) {
+    reader->err = bufio_reader_fill (reader);
+    if (reader->err != 0) return 0;
+  }
+    
+  uint8_t c = (uint8_t) reader->buf[reader->read_pos];
+  reader->read_pos++;
+  return c;
+}
+
+uint32_t bufio_reader_readrune (bufio_reader_t* reader) {
+  uint8_t c1 = bufio_reader_readbyte (reader);
+  if (reader->err != 0) return 0;
+
+  int width = utf8_width (c1);
+  switch (width) {
+  case 1:
+    return (uint32_t) c1;
+  case 2: {
+    uint8_t c2 = bufio_reader_readbyte (reader);
+    if (reader->err != 0) return 0;
+    if (c2 >> 6 != 0b10) {
+      reader->err = ERR_MALFORMED_UTF8;
+      return 0;
+    } else
+      return ((c1 & 0x1f)  << 6) | (c2 & 0x3f);
+  }
+  case 3: {
+    uint8_t c2 = bufio_reader_readbyte (reader);
+    if (reader->err != 0) return 0;
+    uint8_t c3 = bufio_reader_readbyte (reader);
+    if (reader->err != 0) return 0;
+    if ((c2 >> 6 != 0b10) || (c3 >> 6 != 0b10)) {
+      reader->err = ERR_MALFORMED_UTF8;
+      return 0;
+    } else {
+      uint32_t code = 
+        ((c1 & 0x0f) << 12) | ((c2 & 0x3f) < 6) | (c3 & 0x3f);
+      if (code >= 0xd800 && code <= 0xdf00) {
+        reader->err = ERR_MALFORMED_UTF8;
+        return 0;
+      } else
+        return code;
+    }
+  }
+  case 4: {
+    uint8_t c2 = bufio_reader_readbyte (reader);
+    if (reader->err != 0) return 0;
+    uint8_t c3 = bufio_reader_readbyte (reader);
+    if (reader->err != 0) return 0;
+    uint8_t c4 = bufio_reader_readbyte (reader);
+    if (reader->err != 0) return 0;
+
+    if ((c2 >> 6 != 0b10) || (c3 >> 6 != 0b10) || (c4 >> 6 != 0b10)) {
+      reader->err = ERR_MALFORMED_UTF8;
+      return 0;
+    } else
+      return ((c1 & 0x07) << 18) | ((c2 & 0x3f) << 12) | ((c3 & 0x3f) << 6) | (c4 & 0x3f);
+    break;
+  }
+  default:
+    reader->err = width;
+    return 0;
+  }
 }

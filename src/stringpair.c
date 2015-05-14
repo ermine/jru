@@ -22,6 +22,7 @@ const char* stringpair_get (stringpair_t* root, const char* key) {
   while (curr != NULL) {
     if (curr->key == key)
       return curr->value;
+    curr = curr->next;
   }
   return NULL;
 }

@@ -1,16 +1,17 @@
 #ifndef _XEP_MOOD_DATA_H_
 #define  _XEP_MOOD_DATA_H_
 
-#include <libxml/xmlreader.h>
+#include "xmlreader.h"
 #include "xmlwriter.h"
 #include <string.h>
 #include "xstream.h"
 #include "types.h"
 
 
-extern const char* ns_mood;
+extern const char *ns_mood;
 
-enum mood_mood_mood_t {
+enum mood_mood_mood_t
+{
   MOOD_MOOD_MOOD_AFRAID,
   MOOD_MOOD_MOOD_AMAZED,
   MOOD_MOOD_MOOD_ANGRY,
@@ -74,15 +75,16 @@ enum mood_mood_mood_t {
   MOOD_MOOD_MOOD_WORRIED,
 };
 
-enum mood_mood_mood_t enum_mood_mood_mood_from_string(const xmlChar *value);
-const char* enum_mood_mood_mood_to_string(enum mood_mood_mood_t);
+enum mood_mood_mood_t enum_mood_mood_mood_from_string (const char *value);
+const char *enum_mood_mood_mood_to_string (enum mood_mood_mood_t);
 
-struct mood_mood_t {
+struct mood_mood_t
+{
   enum mood_mood_mood_t fMood;
-  const char* fText;
+  const char *fText;
 };
 
 
-struct mood_mood_t* mood_mood_decode(xmlTextReaderPtr reader);
-int mood_mood_encode(xmlWriter_t* writer, struct mood_mood_t* data);
+struct mood_mood_t *mood_mood_decode (xmlreader_t * reader);
+int mood_mood_encode (xmlwriter_t * writer, struct mood_mood_t *data);
 #endif

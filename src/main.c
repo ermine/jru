@@ -24,15 +24,11 @@ int main(int argc, char* argv[]) {
         goto failure;
       }
     }
-      
-    xmlWriter_t* writer = xstream_writer_init(sock);
-    xmlTextReaderPtr reader = xstream_reader_init(sock);
-    if (writer != NULL && reader != NULL) {
-      xstream_read (reader);
-    } else {
-      printf ("Unable to open\n");
-    }
 
+    int err = xstream_start (sock,  &first_account);
+    if (err != 0)
+      printf ("err = %d\n", err);
+      
     config_destroy (config);
     return 0;
   }

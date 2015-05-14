@@ -1,16 +1,17 @@
 #ifndef _STANZA_DATA_H_
 #define  _STANZA_DATA_H_
 
-#include <libxml/xmlreader.h>
+#include "xmlreader.h"
 #include "xmlwriter.h"
 #include <string.h>
 #include "xstream.h"
 #include "types.h"
 
 
-extern const char* ns_stanza;
+extern const char *ns_stanza;
 
-enum stanza_error_condition_name_t {
+enum stanza_error_condition_name_t
+{
   STANZA_ERROR_CONDITION_NAME_BAD_REQUEST,
   STANZA_ERROR_CONDITION_NAME_CONFLICT,
   STANZA_ERROR_CONDITION_NAME_FEATURE_NOT_IMPLEMENTED,
@@ -36,18 +37,22 @@ enum stanza_error_condition_name_t {
   STANZA_ERROR_CONDITION_NAME_UNEXPECTED_REQUEST,
 };
 
-enum stanza_error_condition_name_t enum_stanza_error_condition_name_from_string(const xmlChar *value);
-const char* enum_stanza_error_condition_name_to_string(enum stanza_error_condition_name_t);
+enum stanza_error_condition_name_t
+enum_stanza_error_condition_name_from_string (const char *value);
+const char *enum_stanza_error_condition_name_to_string (enum
+							stanza_error_condition_name_t);
 
-struct stanza_error_t {
-  langstring_t * fText;
- struct stanza_condition_set_t {
-  enum stanza_error_condition_name_t fName;
-  const char* fExtra;
-} fCondition;
+struct stanza_error_t
+{
+  langstring_t *fText;
+  struct stanza_condition_set_t
+  {
+    enum stanza_error_condition_name_t fName;
+    const char *fExtra;
+  } fCondition;
 };
 
 
-struct stanza_error_t* stanza_error_decode(xmlTextReaderPtr reader);
-int stanza_error_encode(xmlWriter_t* writer, struct stanza_error_t* data);
+struct stanza_error_t *stanza_error_decode (xmlreader_t * reader);
+int stanza_error_encode (xmlwriter_t * writer, struct stanza_error_t *data);
 #endif

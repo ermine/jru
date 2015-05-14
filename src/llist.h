@@ -21,5 +21,6 @@ typedef struct _vlist_t vlist_t;
 
 void vlist_append (vlist_t** root, void* data, int type);
 void vlist_free (vlist_t* root);
+void* vlist_get (vlist_t* root, int type);
 
 #endif

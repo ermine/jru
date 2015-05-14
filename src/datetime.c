@@ -33,7 +33,7 @@
 #include <string.h>
 #include "types.h"
 
-struct tm* datetime_parse(const xmlChar* value) {
+struct tm* datetime_parse(const char* value) {
   struct tm *result = NULL;
   char **f;
   char *ret;

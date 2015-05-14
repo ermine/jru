@@ -36,7 +36,7 @@ void* array_get (array_t* array, uint32_t idx) {
     fatal ("array_get: array is null");
   if (idx > array->length)
     fatal ("array_get: idx %d is lager that array length %d", idx, array->length);
-  return array->data + idx * array->length;
+  return array->data + idx * array->size;
 }
 
 void array_set (array_t* array, uint32_t idx, void* element) {
@@ -55,15 +55,16 @@ void array_append (array_t* array, void* element) {
   if (element == NULL)
     fatal ("array_append: element is null");
   if (array->length >= array->capacity) {
-    int newcapacity = array->length >> 1;
+    int newcapacity = array->length << 1;
+    printf ("array_append: reallocated %d %d\n", array->length, newcapacity);
     char* newdata = realloc (array->data, newcapacity * array->size);
     if (newdata == NULL)
       fatal ("array_append: realloc failed");
     array->capacity = newcapacity;
     array->data = newdata;
   }
-  array->length = array->length + 1;
-  array_set (array, array->length, element);
+  array->length += 1;
+  array_set (array, array->length - 1, element);
 }
   
 void array_slice (array_t* array, int start, int length) {

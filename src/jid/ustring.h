@@ -9,9 +9,8 @@ typedef struct {
   size_t len;
 } ustring_t;
 
-int utf8_width (uint8_t ch);
-int decode_utf8 (ustring_t *ustring, const char *str, size_t len);
-int encode_ustring (ustring_t *ustring, char** str);
+int ustring_decode_utf8 (ustring_t *ustring, const char *str, size_t len);
+int ustring_encode_utf8 (ustring_t *ustring, char** str);
 void ustring_free (ustring_t *ustring);
 void ustring_print (ustring_t *usring);
 void ustring_print_hex (ustring_t *usring);

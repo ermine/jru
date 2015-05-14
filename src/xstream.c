@@ -1,33 +1,42 @@
 #include <stdio.h>
-#include <libxml/xmlreader.h>
+
+#include "xmlreader.h"
 #include <string.h>
-#include <unistd.h>
 
 #include <xstream.h>
 #include "types.h"
+#include "account.h"
+#include "stream.h"
+#include "errors.h"
+#include "helpers.h"
+#include "xmppdata/client_data.h"
 
-extension_t *xstream_extension_decode (xmlTextReaderPtr reader) {
-  xmlChar *name, *namespace;
-  int i;
+extension_t* xstream_extension_decode (xmlreader_t* reader) {
+  int i = 0;
 
-  name = xmlTextReaderName (reader);
-  namespace = xmlTextReaderNamespaceUri (reader);
+  const char* name = xmlreader_get_name (reader);
+  const char* namespace = xmlreader_get_namespace (reader);
 
-  void *(*decode) (xmlTextReaderPtr reader);
+  void *(*decode) (xmlreader_t* reader);
 
   for (i = 0; i < extensions_len; i++) {
     if (strcmp ((char*) name, extensions[i].name) == 0 &&
         strcmp ((char*) namespace, extensions[i].namespace) == 0) {
       decode = extensions[i].decode;
-      return decode(reader);
+      extension_t* ext = malloc (sizeof (extension_t));
+      if (ext == NULL)
+        fatal ("xstream_extension_decode: malloc failed");
+      ext->type = extensions[i].type;
+      ext->data = decode(reader);
+      return ext;
     }
   }
   return NULL;
 }
 
-int xstream_extension_encode (xmlWriter_t* writer, void* data, int type) {
+int xstream_extension_encode (xmlwriter_t* writer, void* data, int type) {
   int i;
-  int (*encoder)(xmlWriter_t* writer, void* data);
+  int (*encoder)(xmlwriter_t* writer, void* data);
 
   for (i = 0; i < extensions_len; i++) {
     if (extensions[i].type == type) {
@@ -35,66 +44,26 @@ int xstream_extension_encode (xmlWriter_t* writer, void* data, int type) {
       return encoder(writer, data);
     }
   }
-  return -2;
+  return ERR_EXTENSION_NOT_FOUND;
 }
 
-int xstream_socket_read(void* context, char* buffer, int len) {
-  printf("IN: ");
-  int ret = read ((*(int*) context), (void*) buffer, len);
-  if (ret > 0)
-    fwrite(buffer, sizeof(char), ret, stdout);
-  return ret;
-}
-
-int xstream_socket_close(void* context) {
-  return close(*(int*) context);
-}
-
-xmlWriter_t* xstream_writer_init (int fd) {
-  return xmlwriter_new (fd);
-}
-
-xmlTextReaderPtr xstream_reader_init(int sock) {
-  xmlTextReaderPtr reader;
-
-  reader = xmlReaderForIO (xstream_socket_read, xstream_socket_close, (void*) &sock,
-                           NULL, NULL,
-                           XML_PARSE_NOENT | XML_PARSE_NOBLANKS | XML_PARSE_NOCDATA);
-  return reader;
-}
-
-void xstream_read (xmlTextReaderPtr reader) {
-  int ret;
-
-  ret = xmlTextReaderRead (reader);
-  while (ret == 1) {
-    //      processNode (reader);
-    ret = xmlTextReaderRead (reader);
-  }
-  xmlFreeTextReader (reader);
-  if (ret != 0) {
-    printf ("failed to parse\n");
-  }
-}
-
-int xstream_skip (xmlTextReaderPtr reader) {
-  int ret = xmlTextReaderRead (reader);
-  while (ret == 1) {
-    switch (xmlTextReaderNodeType (reader)) {
-    case XML_READER_TYPE_ELEMENT:
-      xstream_skip (reader);
-      break;
-    case XML_READER_TYPE_END_ELEMENT:
-      return 0;
-    }
-  }
-  return ret;
-}
-
-unsigned char* xmlTextReaderReadBase64(xmlTextReaderPtr reader) {
-  const xmlChar *value = xmlTextReaderConstValue (reader);
-  if (value == NULL)
+extension_t* xstream_read (xmlreader_t* reader) {
+  switch (xmlreader_next (reader)) {
+  case XML_START_ELEMENT:
+    return xstream_extension_decode (reader);
+  case XML_END_ELEMENT:
     return NULL;
+  case XML_TEXT:
+    break;
+  case XML_ERROR:
+    return NULL;
+  }
+  return NULL;
+}
 
-  return base64_decode(value);
+int xstream_start (int fd, account_t* acc) {
+  stream_t* strm = stream_new (fd, ns_client, "ru", true, NULL);
+
+  int err = stream_negotate (strm, acc);
+  return err;
 }
