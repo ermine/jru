@@ -35,8 +35,8 @@ const char *enum_roster_item_subscription_to_string (enum
 
 struct roster_roster_t
 {
-  const char *fVer;
-  vlist_t *fItems;
+  char *fVer;
+  array_t *fItems;
 };
 
 
@@ -45,14 +45,16 @@ struct roster_item_t
   bool *fApproved;
   enum roster_item_ask_t fAsk;
   jid_t *fJid;
-  const char *fName;
+  char *fName;
   enum roster_item_subscription_t fSubscription;
-  vlist_t *fGroup;
+  array_t *fGroup;
 };
 
 
 struct roster_roster_t *roster_roster_decode (xmlreader_t * reader);
 int roster_roster_encode (xmlwriter_t * writer, struct roster_roster_t *data);
+void roster_roster_free (struct roster_roster_t *data);
 struct roster_item_t *roster_item_decode (xmlreader_t * reader);
 int roster_item_encode (xmlwriter_t * writer, struct roster_item_t *data);
+void roster_item_free (struct roster_item_t *data);
 #endif

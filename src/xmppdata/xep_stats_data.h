@@ -12,19 +12,20 @@ struct stats_stat_t;
 extern const char *ns_stats;
 
 
-typedef vlist_t stats_stats_t;
 
 
 struct stats_stat_t
 {
-  const char *fName;
-  const char *fUnits;
-  const char *fValue;
+  char *fName;
+  char *fUnits;
+  char *fValue;
 };
 
 
-struct stats_stats_t *stats_stats_decode (xmlreader_t * reader);
-int stats_stats_encode (xmlwriter_t * writer, struct stats_stats_t *data);
+array_t *stats_stats_decode (xmlreader_t * reader);
+int stats_stats_encode (xmlwriter_t * writer, array_t * data);
+void stats_stats_free (array_t * data);
 struct stats_stat_t *stats_stat_decode (xmlreader_t * reader);
 int stats_stat_encode (xmlwriter_t * writer, struct stats_stat_t *data);
+void stats_stat_free (struct stats_stat_t *data);
 #endif

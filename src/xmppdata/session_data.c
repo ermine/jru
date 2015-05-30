@@ -1,5 +1,6 @@
 #include "session_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_session = "urn:ietf:params:xml:ns:xmpp-session";
 
@@ -27,4 +28,12 @@ session_session_encode (xmlwriter_t * writer, struct session_session_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+session_session_free (struct session_session_t *data)
+{
+  if (data == NULL)
+    return;
+  free (data);
 }

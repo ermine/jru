@@ -21,4 +21,5 @@ struct captcha_captcha_t
 struct captcha_captcha_t *captcha_captcha_decode (xmlreader_t * reader);
 int captcha_captcha_encode (xmlwriter_t * writer,
 			    struct captcha_captcha_t *data);
+void captcha_captcha_free (struct captcha_captcha_t *data);
 #endif

@@ -59,10 +59,10 @@ struct pubsub_event_event_t
 
 struct pubsub_event_collection_t
 {
-  const char *fNode;
+  char *fNode;
   struct pubsub_event_type_set_t
   {
-    const char *fNode;
+    char *fNode;
     enum pubsub_event_collection_type_type_t fType;
   } fType;
 };
@@ -70,47 +70,47 @@ struct pubsub_event_collection_t
 
 struct pubsub_event_configuration_t
 {
-  const char *fNode;
+  char *fNode;
   struct xdata_x_t *fXdata;
 };
 
 
 struct pubsub_event_delete_t
 {
-  const char *fNode;
+  char *fNode;
   struct pubsub_event_redirect_set_t
   {
-    const char *fUrl;
+    char *fUrl;
   } fRedirect;
 };
 
 
 struct pubsub_event_items_t
 {
-  const char *fNode;
-  vlist_t *fItems;
-  vlist_t *fRetracts;
+  char *fNode;
+  array_t *fItems;
+  array_t *fRetracts;
 };
 
 
 struct pubsub_event_item_t
 {
-  const char *fId;
-  const char *fNode;
-  const char *fPublisher;
+  char *fId;
+  char *fNode;
+  char *fPublisher;
   extension_t *fEvent;
 };
 
 
 struct pubsub_event_purge_t
 {
-  const char *fNode;
+  char *fNode;
 };
 
 
 struct pubsub_event_retract_t
 {
-  const char *fId;
+  char *fId;
 };
 
 
@@ -118,8 +118,8 @@ struct pubsub_event_subscription_t
 {
   struct tm *fExpiry;
   jid_t *fJid;
-  const char *fNode;
-  const char *fSubid;
+  char *fNode;
+  char *fSubid;
   enum pubsub_event_subscription_subscription_t fSubscription;
 };
 
@@ -127,35 +127,46 @@ struct pubsub_event_subscription_t
 struct pubsub_event_event_t *pubsub_event_event_decode (xmlreader_t * reader);
 int pubsub_event_event_encode (xmlwriter_t * writer,
 			       struct pubsub_event_event_t *data);
+void pubsub_event_event_free (struct pubsub_event_event_t *data);
 struct pubsub_event_collection_t *pubsub_event_collection_decode (xmlreader_t
 								  * reader);
 int pubsub_event_collection_encode (xmlwriter_t * writer,
 				    struct pubsub_event_collection_t *data);
+void pubsub_event_collection_free (struct pubsub_event_collection_t *data);
 struct pubsub_event_configuration_t
   *pubsub_event_configuration_decode (xmlreader_t * reader);
 int pubsub_event_configuration_encode (xmlwriter_t * writer,
 				       struct pubsub_event_configuration_t
 				       *data);
+void pubsub_event_configuration_free (struct pubsub_event_configuration_t
+				      *data);
 struct pubsub_event_delete_t *pubsub_event_delete_decode (xmlreader_t *
 							  reader);
 int pubsub_event_delete_encode (xmlwriter_t * writer,
 				struct pubsub_event_delete_t *data);
+void pubsub_event_delete_free (struct pubsub_event_delete_t *data);
 struct pubsub_event_items_t *pubsub_event_items_decode (xmlreader_t * reader);
 int pubsub_event_items_encode (xmlwriter_t * writer,
 			       struct pubsub_event_items_t *data);
+void pubsub_event_items_free (struct pubsub_event_items_t *data);
 struct pubsub_event_item_t *pubsub_event_item_decode (xmlreader_t * reader);
 int pubsub_event_item_encode (xmlwriter_t * writer,
 			      struct pubsub_event_item_t *data);
+void pubsub_event_item_free (struct pubsub_event_item_t *data);
 struct pubsub_event_purge_t *pubsub_event_purge_decode (xmlreader_t * reader);
 int pubsub_event_purge_encode (xmlwriter_t * writer,
 			       struct pubsub_event_purge_t *data);
+void pubsub_event_purge_free (struct pubsub_event_purge_t *data);
 struct pubsub_event_retract_t *pubsub_event_retract_decode (xmlreader_t *
 							    reader);
 int pubsub_event_retract_encode (xmlwriter_t * writer,
 				 struct pubsub_event_retract_t *data);
+void pubsub_event_retract_free (struct pubsub_event_retract_t *data);
 struct pubsub_event_subscription_t
   *pubsub_event_subscription_decode (xmlreader_t * reader);
 int pubsub_event_subscription_encode (xmlwriter_t * writer,
 				      struct pubsub_event_subscription_t
 				      *data);
+void pubsub_event_subscription_free (struct pubsub_event_subscription_t
+				     *data);
 #endif

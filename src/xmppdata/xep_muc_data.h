@@ -31,12 +31,13 @@ struct muc_enter_t
     int *fSeconds;
     struct tm *fSince;
   } fHistory;
-  const char *fPassword;
+  char *fPassword;
 };
 
 
 struct muc_enter_t *muc_enter_decode (xmlreader_t * reader);
 int muc_enter_encode (xmlwriter_t * writer, struct muc_enter_t *data);
+void muc_enter_free (struct muc_enter_t *data);
 enum muc_user_item_affiliation_t
 {
   MUC_USER_ITEM_AFFILIATION_ADMIN,
@@ -66,10 +67,10 @@ struct muc_user_action_t
 {
   struct muc_user_decline_t *fDecline;
   struct muc_user_destroy_t *fDestroy;
-  vlist_t *fInvite;
+  array_t *fInvite;
   struct muc_user_item_t *fItem;
-  const char *fPassword;
-  vlist_t *fStatus;
+  char *fPassword;
+  array_t *fStatus;
 };
 
 
@@ -83,14 +84,14 @@ struct muc_user_decline_t
 {
   jid_t *fFrom;
   jid_t *fTo;
-  const char *fReason;
+  char *fReason;
 };
 
 
 struct muc_user_destroy_t
 {
   jid_t *fJid;
-  const char *fReason;
+  char *fReason;
 };
 
 
@@ -98,7 +99,7 @@ struct muc_user_invite_t
 {
   jid_t *fFrom;
   jid_t *fTo;
-  const char *fReason;
+  char *fReason;
 };
 
 
@@ -106,13 +107,13 @@ struct muc_user_item_t
 {
   enum muc_user_item_affiliation_t fAffiliation;
   jid_t *fJid;
-  const char *fNick;
+  char *fNick;
   enum muc_user_item_role_t fRole;
   struct muc_user_actor_set_t
   {
     jid_t *fJid;
   } fActor;
-  const char *fReason;
+  char *fReason;
   bool fContinue;
 };
 
@@ -120,20 +121,26 @@ struct muc_user_item_t
 struct muc_user_action_t *muc_user_action_decode (xmlreader_t * reader);
 int muc_user_action_encode (xmlwriter_t * writer,
 			    struct muc_user_action_t *data);
+void muc_user_action_free (struct muc_user_action_t *data);
 struct muc_user_status_t *muc_user_status_decode (xmlreader_t * reader);
 int muc_user_status_encode (xmlwriter_t * writer,
 			    struct muc_user_status_t *data);
+void muc_user_status_free (struct muc_user_status_t *data);
 struct muc_user_decline_t *muc_user_decline_decode (xmlreader_t * reader);
 int muc_user_decline_encode (xmlwriter_t * writer,
 			     struct muc_user_decline_t *data);
+void muc_user_decline_free (struct muc_user_decline_t *data);
 struct muc_user_destroy_t *muc_user_destroy_decode (xmlreader_t * reader);
 int muc_user_destroy_encode (xmlwriter_t * writer,
 			     struct muc_user_destroy_t *data);
+void muc_user_destroy_free (struct muc_user_destroy_t *data);
 struct muc_user_invite_t *muc_user_invite_decode (xmlreader_t * reader);
 int muc_user_invite_encode (xmlwriter_t * writer,
 			    struct muc_user_invite_t *data);
+void muc_user_invite_free (struct muc_user_invite_t *data);
 struct muc_user_item_t *muc_user_item_decode (xmlreader_t * reader);
 int muc_user_item_encode (xmlwriter_t * writer, struct muc_user_item_t *data);
+void muc_user_item_free (struct muc_user_item_t *data);
 
 typedef struct xdata_x_t *muc_owner_configure_t;
 
@@ -141,6 +148,7 @@ typedef struct xdata_x_t *muc_owner_configure_t;
 muc_owner_configure_t *muc_owner_configure_decode (xmlreader_t * reader);
 int muc_owner_configure_encode (xmlwriter_t * writer,
 				muc_owner_configure_t * data);
+void muc_owner_configure_free (muc_owner_configure_t * data);
 enum muc_admin_item_affiliation_t
 {
   MUC_ADMIN_ITEM_AFFILIATION_ADMIN,
@@ -168,7 +176,7 @@ const char *enum_muc_admin_item_role_to_string (enum muc_admin_item_role_t);
 
 struct muc_admin_query_t
 {
-  vlist_t *fItems;
+  array_t *fItems;
 };
 
 
@@ -176,20 +184,22 @@ struct muc_admin_item_t
 {
   enum muc_admin_item_affiliation_t fAffiliation;
   jid_t *fJid;
-  const char *fNick;
+  char *fNick;
   enum muc_admin_item_role_t fRole;
   struct muc_admin_actor_set_t
   {
     jid_t *fJid;
   } fActor;
-  const char *fReason;
+  char *fReason;
 };
 
 
 struct muc_admin_query_t *muc_admin_query_decode (xmlreader_t * reader);
 int muc_admin_query_encode (xmlwriter_t * writer,
 			    struct muc_admin_query_t *data);
+void muc_admin_query_free (struct muc_admin_query_t *data);
 struct muc_admin_item_t *muc_admin_item_decode (xmlreader_t * reader);
 int muc_admin_item_encode (xmlwriter_t * writer,
 			   struct muc_admin_item_t *data);
+void muc_admin_item_free (struct muc_admin_item_t *data);
 #endif

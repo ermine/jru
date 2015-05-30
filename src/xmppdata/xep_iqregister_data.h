@@ -18,24 +18,24 @@ struct iqregister_query_t
   struct iqregister_fields_set_t
   {
     bool fRegistered;
-    const char *fInstructions;
-    const char *fUsername;
-    const char *fNick;
-    const char *fPassword;
-    const char *fName;
-    const char *fFirst;
-    const char *fLast;
-    const char *fEmail;
-    const char *fAddress;
-    const char *fCity;
-    const char *fState;
-    const char *fZip;
-    const char *fPhone;
-    const char *fUrl;
-    const char *fDate;
-    const char *fMisc;
-    const char *fText;
-    const char *fKey;
+    char *fInstructions;
+    char *fUsername;
+    char *fNick;
+    char *fPassword;
+    char *fName;
+    char *fFirst;
+    char *fLast;
+    char *fEmail;
+    char *fAddress;
+    char *fCity;
+    char *fState;
+    char *fZip;
+    char *fPhone;
+    char *fUrl;
+    char *fDate;
+    char *fMisc;
+    char *fText;
+    char *fKey;
   } fFields;
   bool fRemove;
   struct xdata_x_t *fXdata;
@@ -46,4 +46,5 @@ struct iqregister_query_t
 struct iqregister_query_t *iqregister_query_decode (xmlreader_t * reader);
 int iqregister_query_encode (xmlwriter_t * writer,
 			     struct iqregister_query_t *data);
+void iqregister_query_free (struct iqregister_query_t *data);
 #endif

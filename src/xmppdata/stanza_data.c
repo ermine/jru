@@ -1,5 +1,6 @@
 #include "stanza_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_stanza = "urn:ietf:params:xml:ns:xmpp-stanzas";
 
@@ -27,16 +28,16 @@ stanza_error_decode (xmlreader_t * reader)
 	      && (strcmp (namespace, ns_stanza) == 0))
 	    {
 	      langstring_decode (reader, elm->fText);
-	    }			// for end part 1
+	    }
 	  else if (strcmp (namespace, ns_stanza) != 0)
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fCondition.fExtra = (const char *) value;
-	    }			// any end
-	}			// case end
-    }				// while end
+	      elm->fCondition.fExtra = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -71,6 +72,22 @@ stanza_error_encode (xmlwriter_t * writer, struct stanza_error_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+stanza_error_free (struct stanza_error_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fText != NULL)
+    {
+      langstring_free (data->fText);
+    }
+  if (data->fCondition.fExtra != NULL)
+    {
+      free (data->fCondition.fExtra);
+    }
+  free (data);
 }
 
 enum stanza_error_condition_name_t

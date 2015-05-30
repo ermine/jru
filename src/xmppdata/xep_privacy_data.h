@@ -38,28 +38,28 @@ struct privacy_privacy_t
 {
   struct privacy_active_t *fActive;
   struct privacy_default_t *fDefault;
-  vlist_t *fList;
+  array_t *fList;
 };
 
 
 struct privacy_active_t
 {
-  const char *fName;
-  const char *fExtra;
+  char *fName;
+  char *fExtra;
 };
 
 
 struct privacy_default_t
 {
-  const char *fName;
-  const char *fExtra;
+  char *fName;
+  char *fExtra;
 };
 
 
 struct privacy_list_t
 {
-  const char *fName;
-  vlist_t *fItems;
+  char *fName;
+  array_t *fItems;
 };
 
 
@@ -68,7 +68,7 @@ struct privacy_item_t
   enum privacy_item_action_t fAction;
   uint32_t *fOrder;
   enum privacy_item_type_t fType;
-  const char *fValue;
+  char *fValue;
   bool fIq;
   bool fMessage;
   bool fPresence_in;
@@ -79,14 +79,19 @@ struct privacy_item_t
 struct privacy_privacy_t *privacy_privacy_decode (xmlreader_t * reader);
 int privacy_privacy_encode (xmlwriter_t * writer,
 			    struct privacy_privacy_t *data);
+void privacy_privacy_free (struct privacy_privacy_t *data);
 struct privacy_active_t *privacy_active_decode (xmlreader_t * reader);
 int privacy_active_encode (xmlwriter_t * writer,
 			   struct privacy_active_t *data);
+void privacy_active_free (struct privacy_active_t *data);
 struct privacy_default_t *privacy_default_decode (xmlreader_t * reader);
 int privacy_default_encode (xmlwriter_t * writer,
 			    struct privacy_default_t *data);
+void privacy_default_free (struct privacy_default_t *data);
 struct privacy_list_t *privacy_list_decode (xmlreader_t * reader);
 int privacy_list_encode (xmlwriter_t * writer, struct privacy_list_t *data);
+void privacy_list_free (struct privacy_list_t *data);
 struct privacy_item_t *privacy_item_decode (xmlreader_t * reader);
 int privacy_item_encode (xmlwriter_t * writer, struct privacy_item_t *data);
+void privacy_item_free (struct privacy_item_t *data);
 #endif

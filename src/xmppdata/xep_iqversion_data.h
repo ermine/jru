@@ -13,13 +13,14 @@ extern const char *ns_iqversion;
 
 struct iqversion_version_t
 {
-  const char *fName;
-  const char *fVersion;
-  const char *fOs;
+  char *fName;
+  char *fVersion;
+  char *fOs;
 };
 
 
 struct iqversion_version_t *iqversion_version_decode (xmlreader_t * reader);
 int iqversion_version_encode (xmlwriter_t * writer,
 			      struct iqversion_version_t *data);
+void iqversion_version_free (struct iqversion_version_t *data);
 #endif

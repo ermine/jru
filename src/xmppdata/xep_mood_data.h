@@ -81,10 +81,11 @@ const char *enum_mood_mood_mood_to_string (enum mood_mood_mood_t);
 struct mood_mood_t
 {
   enum mood_mood_mood_t fMood;
-  const char *fText;
+  char *fText;
 };
 
 
 struct mood_mood_t *mood_mood_decode (xmlreader_t * reader);
 int mood_mood_encode (xmlwriter_t * writer, struct mood_mood_t *data);
+void mood_mood_free (struct mood_mood_t *data);
 #endif

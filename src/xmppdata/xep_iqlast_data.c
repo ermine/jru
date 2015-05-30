@@ -1,5 +1,6 @@
 #include "xep_iqlast_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_iqlast = "jabber:iq:last";
 
@@ -20,7 +21,7 @@ iqlast_last_decode (xmlreader_t * reader)
   const char *value = xmlreader_text (reader);
   if (reader->err != 0)
     return NULL;
-  elm->fExtra = (const char *) value;
+  elm->fExtra = (char *) value;
   return elm;
 }
 
@@ -49,4 +50,20 @@ iqlast_last_encode (xmlwriter_t * writer, struct iqlast_last_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+iqlast_last_free (struct iqlast_last_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fSeconds != NULL)
+    {
+      free (data->fSeconds);
+    }
+  if (data->fExtra != NULL)
+    {
+      free (data->fExtra);
+    }
+  free (data);
 }

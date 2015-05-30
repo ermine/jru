@@ -13,11 +13,12 @@ extern const char *ns_xoob;
 
 struct xoob_x_t
 {
-  const char *fUrl;
-  const char *fDesc;
+  char *fUrl;
+  char *fDesc;
 };
 
 
 struct xoob_x_t *xoob_x_decode (xmlreader_t * reader);
 int xoob_x_encode (xmlwriter_t * writer, struct xoob_x_t *data);
+void xoob_x_free (struct xoob_x_t *data);
 #endif

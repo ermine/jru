@@ -1,5 +1,6 @@
 #include "xep_xoob_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_xoob = "jabber:x:oob";
 
@@ -29,18 +30,18 @@ xoob_x_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fUrl = (const char *) value;
-	    }			// for end part 1
+	      elm->fUrl = (char *) value;
+	    }
 	  else if ((strcmp (name, "desc") == 0)
 		   && (strcmp (namespace, ns_xoob) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fDesc = (const char *) value;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      elm->fDesc = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -67,4 +68,20 @@ xoob_x_encode (xmlwriter_t * writer, struct xoob_x_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+xoob_x_free (struct xoob_x_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fUrl != NULL)
+    {
+      free (data->fUrl);
+    }
+  if (data->fDesc != NULL)
+    {
+      free (data->fDesc);
+    }
+  free (data);
 }

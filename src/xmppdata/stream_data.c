@@ -1,5 +1,6 @@
 #include "stream_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_stream = "http://etherx.jabber.org/streams";
 
@@ -27,17 +28,17 @@ stream_start_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "id");
   if (avalue != NULL)
     {
-      elm->fId = avalue;
+      elm->fId = (char *) avalue;
     }
   avalue = xmlreader_attribute (reader, NULL, "version");
   if (avalue != NULL)
     {
-      elm->fVersion = avalue;
+      elm->fVersion = (char *) avalue;
     }
   avalue = xmlreader_attribute (reader, NULL, "lang");
   if (avalue != NULL)
     {
-      elm->fLang = avalue;
+      elm->fLang = (char *) avalue;
     }
   return elm;
 }
@@ -88,14 +89,38 @@ stream_start_encode (xmlwriter_t * writer, struct stream_start_t *elm)
   return 0;
 }
 
-struct stream_features_t *
+void
+stream_start_free (struct stream_start_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fTo != NULL)
+    {
+      jid_free (data->fTo);
+    }
+  if (data->fFrom != NULL)
+    {
+      jid_free (data->fFrom);
+    }
+  if (data->fId != NULL)
+    {
+      free (data->fId);
+    }
+  if (data->fVersion != NULL)
+    {
+      free (data->fVersion);
+    }
+  if (data->fLang != NULL)
+    {
+      free (data->fLang);
+    }
+  free (data);
+}
+
+array_t *
 stream_features_decode (xmlreader_t * reader)
 {
-  struct stream_features_t **elm = NULL;
-  elm = malloc (sizeof (struct stream_features_t **));
-  if (elm == NULL)
-    fatal ("stream_features_t: malloc failed");
-  *elm = NULL;
+  array_t *elm = array_new (sizeof (extension_t), 0);
   int type = 0;
   while (1)
     {
@@ -106,26 +131,26 @@ stream_features_decode (xmlreader_t * reader)
 	return NULL;
       if (type == XML_START_ELEMENT)
 	{
-	  extension_t *newel = xstream_extension_decode (reader);
+	  extension_t ext;
+	  int err = xstream_extension_decode (reader, &ext);
 	  if (reader->err != 0)
 	    return NULL;
-	  if (newel != NULL)
-	    {
-	      vlist_append ((vlist_t **) elm, newel->data, newel->type);
-	      free (newel);
-	    }
-	  else
+	  if (err == ERR_EXTENSION_NOT_FOUND)
 	    {
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	    }
+	  else
+	    {
+	      array_append (elm, &ext);
+	    }
 	}
     }
-  return *elm;
+  return elm;
 }
 
 int
-stream_features_encode (xmlwriter_t * writer, struct stream_features_t *elm)
+stream_features_encode (xmlwriter_t * writer, array_t * elm)
 {
   int err = 0;
   err = xmlwriter_set_prefix (writer, "stream", ns_stream);
@@ -134,18 +159,34 @@ stream_features_encode (xmlwriter_t * writer, struct stream_features_t *elm)
   err = xmlwriter_start_element (writer, ns_stream, "features");
   if (err != 0)
     return err;
-  vlist_t *curr = (vlist_t *) elm;
-  while (curr != NULL)
+  int len = array_length (elm);
+  int i = 0;
+  for (i = 0; i < len; i++)
     {
-      err = xstream_extension_encode (writer, curr->data, curr->type);
+      extension_t *ext = array_get (elm, i);
+      err = xstream_extension_encode (writer, ext->data, ext->type);
       if (err != 0)
 	return err;
-      curr = curr->next;
     }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+stream_features_free (array_t * data)
+{
+  if (data == NULL)
+    return;
+  int len = array_length (data);
+  int i = 0;
+  for (i = 0; i < len; i++)
+    {
+      extension_t *ext = array_get (data, i);
+      xstream_extension_free (ext);
+    }
+  array_free (data);
 }
 
 struct stream_error_t *
@@ -172,16 +213,16 @@ stream_error_decode (xmlreader_t * reader)
 	      && (strcmp (namespace, ns_stream) == 0))
 	    {
 	      langstring_decode (reader, elm->fText);
-	    }			// for end part 1
+	    }
 	  else if (strcmp (namespace, ns_stream) != 0)
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fCondition.fExtra = (const char *) value;
-	    }			// any end
-	}			// case end
-    }				// while end
+	      elm->fCondition.fExtra = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -219,6 +260,22 @@ stream_error_encode (xmlwriter_t * writer, struct stream_error_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+stream_error_free (struct stream_error_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fText != NULL)
+    {
+      langstring_free (data->fText);
+    }
+  if (data->fCondition.fExtra != NULL)
+    {
+      free (data->fCondition.fExtra);
+    }
+  free (data);
 }
 
 enum stream_error_condition_name_t

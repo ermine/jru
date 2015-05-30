@@ -10,3 +10,6 @@ int langstring_decode (xmlreader_t* reader, langstring_t *map) {
 int langstring_encode (xmlwriter_t* writer, const char* space, const char* local, langstring_t *map) {
   return 1;
 }
+
+void langstring_free (langstring_t* map) {
+}

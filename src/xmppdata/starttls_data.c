@@ -1,5 +1,6 @@
 #include "starttls_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_starttls = "urn:ietf:params:xml:ns:xmpp-tls";
 
@@ -30,9 +31,9 @@ starttls_starttls_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	    }
+	}
+    }
   return elm;
 }
 
@@ -54,6 +55,17 @@ starttls_starttls_encode (xmlwriter_t * writer,
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+starttls_starttls_free (struct starttls_starttls_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fRequired)
+    {
+    }
+  free (data);
 }
 
 struct starttls_proceed_t *
@@ -82,6 +94,14 @@ starttls_proceed_encode (xmlwriter_t * writer, struct starttls_proceed_t *elm)
   return 0;
 }
 
+void
+starttls_proceed_free (struct starttls_proceed_t *data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+}
+
 struct starttls_failure_t *
 starttls_failure_decode (xmlreader_t * reader)
 {
@@ -106,4 +126,12 @@ starttls_failure_encode (xmlwriter_t * writer, struct starttls_failure_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+starttls_failure_free (struct starttls_failure_t *data)
+{
+  if (data == NULL)
+    return;
+  free (data);
 }

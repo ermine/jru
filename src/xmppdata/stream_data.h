@@ -49,13 +49,12 @@ struct stream_start_t
 {
   jid_t *fTo;
   jid_t *fFrom;
-  const char *fId;
-  const char *fVersion;
-  const char *fLang;
+  char *fId;
+  char *fVersion;
+  char *fLang;
 };
 
 
-typedef vlist_t stream_features_t;
 
 
 struct stream_error_t
@@ -64,16 +63,18 @@ struct stream_error_t
   struct stream_condition_set_t
   {
     enum stream_error_condition_name_t fName;
-    const char *fExtra;
+    char *fExtra;
   } fCondition;
 };
 
 
 struct stream_start_t *stream_start_decode (xmlreader_t * reader);
 int stream_start_encode (xmlwriter_t * writer, struct stream_start_t *data);
-struct stream_features_t *stream_features_decode (xmlreader_t * reader);
-int stream_features_encode (xmlwriter_t * writer,
-			    struct stream_features_t *data);
+void stream_start_free (struct stream_start_t *data);
+array_t *stream_features_decode (xmlreader_t * reader);
+int stream_features_encode (xmlwriter_t * writer, array_t * data);
+void stream_features_free (array_t * data);
 struct stream_error_t *stream_error_decode (xmlreader_t * reader);
 int stream_error_encode (xmlwriter_t * writer, struct stream_error_t *data);
+void stream_error_free (struct stream_error_t *data);
 #endif

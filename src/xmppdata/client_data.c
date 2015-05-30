@@ -1,5 +1,6 @@
 #include "client_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_client = "jabber:client";
 
@@ -27,7 +28,7 @@ client_iq_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "id");
   if (avalue != NULL)
     {
-      elm->fId = avalue;
+      elm->fId = (char *) avalue;
     }
   avalue = xmlreader_attribute (reader, NULL, "type");
   if (avalue != NULL)
@@ -37,7 +38,7 @@ client_iq_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "lang");
   if (avalue != NULL)
     {
-      elm->fLang = avalue;
+      elm->fLang = (char *) avalue;
     }
   int type = 0;
   while (1)
@@ -53,10 +54,11 @@ client_iq_decode (xmlreader_t * reader)
 	  const char *name = xmlreader_get_name (reader);
 	  if (strcmp (namespace, ns_client) != 0)
 	    {
-	      extension_t *newel = xstream_extension_decode (reader);
+	      extension_t *newel = malloc (sizeof (extension_t));
+	      int err = xstream_extension_decode (reader, newel);
 	      if (reader->err != 0)
 		return NULL;
-	      if (newel == NULL)
+	      if (err == ERR_EXTENSION_NOT_FOUND)
 		{
 		  if (xmlreader_skip_element (reader) == -1)
 		    return NULL;
@@ -65,7 +67,7 @@ client_iq_decode (xmlreader_t * reader)
 		{
 		  elm->fPayload = newel;
 		}
-	    }			// end of if strcmp
+	    }
 	  else
 	    if ((strcmp (namespace, "urn:ietf:params:xml:ns:xmpp-stanzas") ==
 		 0) && (strcmp (name, "error") == 0))
@@ -77,8 +79,8 @@ client_iq_decode (xmlreader_t * reader)
 		}
 	      elm->fError = newel;
 	    }
-	}			// case end
-    }				// while end
+	}
+    }
   return elm;
 }
 
@@ -144,6 +146,39 @@ client_iq_encode (xmlwriter_t * writer, struct client_iq_t *elm)
   return 0;
 }
 
+void
+client_iq_free (struct client_iq_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fFrom != NULL)
+    {
+      jid_free (data->fFrom);
+    }
+  if (data->fTo != NULL)
+    {
+      jid_free (data->fTo);
+    }
+  if (data->fId != NULL)
+    {
+      free (data->fId);
+    }
+  if (data->fLang != NULL)
+    {
+      free (data->fLang);
+    }
+  if (data->fPayload != NULL)
+    {
+      xstream_extension_free (data->fPayload);
+      free (data->fPayload);
+    }
+  if (data->fError != NULL)
+    {
+      stanza_error_free (data->fError);
+    }
+  free (data);
+}
+
 struct client_presence_t *
 client_presence_decode (xmlreader_t * reader)
 {
@@ -168,7 +203,7 @@ client_presence_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "id");
   if (avalue != NULL)
     {
-      elm->fId = avalue;
+      elm->fId = (char *) avalue;
     }
   avalue = xmlreader_attribute (reader, NULL, "type");
   if (avalue != NULL)
@@ -178,7 +213,7 @@ client_presence_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "lang");
   if (avalue != NULL)
     {
-      elm->fLang = avalue;
+      elm->fLang = (char *) avalue;
     }
   int type = 0;
   while (1)
@@ -199,15 +234,15 @@ client_presence_decode (xmlreader_t * reader)
 	      if (reader->err != 0)
 		return NULL;
 	      elm->fShow = enum_client_presence_show_from_string (s);
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "status") == 0)
 		   && (strcmp (namespace, ns_client) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fStatus = (const char *) value;
-	    }			// for end part 1
+	      elm->fStatus = (char *) value;
+	    }
 	  else if ((strcmp (name, "priority") == 0)
 		   && (strcmp (namespace, ns_client) == 0))
 	    {
@@ -215,22 +250,23 @@ client_presence_decode (xmlreader_t * reader)
 	      if (reader->err != 0)
 		return NULL;
 	      elm->fPriority = strconv_parse_int (s);
-	    }			// for end part 1
+	    }
 	  else if (strcmp (namespace, ns_client) != 0)
 	    {
-	      extension_t *newel = xstream_extension_decode (reader);
+	      extension_t ext;
+	      int err = xstream_extension_decode (reader, &ext);
 	      if (reader->err != 0)
 		return NULL;
-	      if (newel == NULL)
+	      if (err == ERR_EXTENSION_NOT_FOUND)
 		{
 		  if (xmlreader_skip_element (reader) == -1)
 		    return NULL;
 		}
 	      else
 		{
-		  vlist_append ((vlist_t **) & elm->fX, newel->data,
-				newel->type);
-		  free (newel);
+		  if (elm->fX == NULL)
+		    elm->fX = array_new (sizeof (extension_t), 0);
+		  array_append (elm->fX, &ext);
 		}
 	    }
 	  else
@@ -244,8 +280,8 @@ client_presence_decode (xmlreader_t * reader)
 		}
 	      elm->fError = newel;
 	    }
-	}			// case end
-    }				// while end
+	}
+    }
   return elm;
 }
 
@@ -317,13 +353,14 @@ client_presence_encode (xmlwriter_t * writer, struct client_presence_t *elm)
 	return err;
     }
   {
-    vlist_t *curr = (vlist_t *) elm->fX;
-    while (curr != NULL)
+    int len = array_length (elm->fX);
+    int i = 0;
+    for (i = 0; i < len; i++)
       {
-	err = xstream_extension_encode (writer, curr->data, curr->type);
+	extension_t *ext = array_get (elm->fX, i);
+	err = xstream_extension_encode (writer, ext->data, ext->type);
 	if (err != 0)
 	  return err;
-	curr = curr->next;
       }
   }
   if (elm->fError != NULL)
@@ -336,6 +373,55 @@ client_presence_encode (xmlwriter_t * writer, struct client_presence_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+client_presence_free (struct client_presence_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fFrom != NULL)
+    {
+      jid_free (data->fFrom);
+    }
+  if (data->fTo != NULL)
+    {
+      jid_free (data->fTo);
+    }
+  if (data->fId != NULL)
+    {
+      free (data->fId);
+    }
+  if (data->fLang != NULL)
+    {
+      free (data->fLang);
+    }
+  if (data->fShow != 0)
+    {
+    }
+  if (data->fStatus != NULL)
+    {
+      free (data->fStatus);
+    }
+  if (data->fPriority != NULL)
+    {
+      free (data->fPriority);
+    }
+  {
+    int len = array_length (data->fX);
+    int i = 0;
+    for (i = 0; i < len; i++)
+      {
+	extension_t *ext = array_get (data->fX, i);
+	xstream_extension_free (ext);
+      }
+    array_free (data->fX);
+  }
+  if (data->fError != NULL)
+    {
+      stanza_error_free (data->fError);
+    }
+  free (data);
 }
 
 struct client_message_t *
@@ -362,7 +448,7 @@ client_message_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "id");
   if (avalue != NULL)
     {
-      elm->fId = avalue;
+      elm->fId = (char *) avalue;
     }
   avalue = xmlreader_attribute (reader, NULL, "type");
   if (avalue != NULL)
@@ -372,7 +458,7 @@ client_message_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "lang");
   if (avalue != NULL)
     {
-      elm->fLang = avalue;
+      elm->fLang = (char *) avalue;
     }
   int type = 0;
   while (1)
@@ -392,33 +478,34 @@ client_message_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fThread = (const char *) value;
-	    }			// for end part 1
+	      elm->fThread = (char *) value;
+	    }
 	  else if ((strcmp (name, "subject") == 0)
 		   && (strcmp (namespace, ns_client) == 0))
 	    {
 	      langstring_decode (reader, elm->fSubject);
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "body") == 0)
 		   && (strcmp (namespace, ns_client) == 0))
 	    {
 	      langstring_decode (reader, elm->fBody);
-	    }			// for end part 1
+	    }
 	  else if (strcmp (namespace, ns_client) != 0)
 	    {
-	      extension_t *newel = xstream_extension_decode (reader);
+	      extension_t ext;
+	      int err = xstream_extension_decode (reader, &ext);
 	      if (reader->err != 0)
 		return NULL;
-	      if (newel == NULL)
+	      if (err == ERR_EXTENSION_NOT_FOUND)
 		{
 		  if (xmlreader_skip_element (reader) == -1)
 		    return NULL;
 		}
 	      else
 		{
-		  vlist_append ((vlist_t **) & elm->fX, newel->data,
-				newel->type);
-		  free (newel);
+		  if (elm->fX == NULL)
+		    elm->fX = array_new (sizeof (extension_t), 0);
+		  array_append (elm->fX, &ext);
 		}
 	    }
 	  else
@@ -432,8 +519,8 @@ client_message_decode (xmlreader_t * reader)
 		}
 	      elm->fError = newel;
 	    }
-	}			// case end
-    }				// while end
+	}
+    }
   return elm;
 }
 
@@ -499,13 +586,14 @@ client_message_encode (xmlwriter_t * writer, struct client_message_t *elm)
 	return err;
     }
   {
-    vlist_t *curr = (vlist_t *) elm->fX;
-    while (curr != NULL)
+    int len = array_length (elm->fX);
+    int i = 0;
+    for (i = 0; i < len; i++)
       {
-	err = xstream_extension_encode (writer, curr->data, curr->type);
+	extension_t *ext = array_get (elm->fX, i);
+	err = xstream_extension_encode (writer, ext->data, ext->type);
 	if (err != 0)
 	  return err;
-	curr = curr->next;
       }
   }
   if (elm->fError != NULL)
@@ -518,6 +606,56 @@ client_message_encode (xmlwriter_t * writer, struct client_message_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+client_message_free (struct client_message_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fFrom != NULL)
+    {
+      jid_free (data->fFrom);
+    }
+  if (data->fTo != NULL)
+    {
+      jid_free (data->fTo);
+    }
+  if (data->fId != NULL)
+    {
+      free (data->fId);
+    }
+  if (data->fLang != NULL)
+    {
+      free (data->fLang);
+    }
+  if (data->fThread != NULL)
+    {
+      free (data->fThread);
+    }
+  if (data->fSubject != NULL)
+    {
+      langstring_free (data->fSubject);
+    }
+  if (data->fBody != NULL)
+    {
+      langstring_free (data->fBody);
+    }
+  {
+    int len = array_length (data->fX);
+    int i = 0;
+    for (i = 0; i < len; i++)
+      {
+	extension_t *ext = array_get (data->fX, i);
+	xstream_extension_free (ext);
+      }
+    array_free (data->fX);
+  }
+  if (data->fError != NULL)
+    {
+      stanza_error_free (data->fError);
+    }
+  free (data);
 }
 
 enum client_iq_type_t

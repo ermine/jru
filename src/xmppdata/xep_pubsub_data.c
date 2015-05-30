@@ -1,5 +1,6 @@
 #include "xep_pubsub_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_pubsub_event = "http://jabber.org/protocol/pubsub#event";
 
@@ -95,8 +96,8 @@ pubsub_event_event_decode (xmlreader_t * reader)
 	      elm->type = EXTENSION_TYPE_PUBSUB_EVENT_SUBSCRIPTION;
 	      elm->u->fSubscription = newel;
 	    }
-	}			// case end
-    }				// while end
+	}
+    }
   return elm;
 }
 
@@ -120,6 +121,19 @@ pubsub_event_event_encode (xmlwriter_t * writer,
   return 0;
 }
 
+void
+pubsub_event_event_free (struct pubsub_event_event_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->u != NULL)
+    {
+      extension_t ext = { data->type, data->u };
+      xstream_extension_free (&ext);
+    }
+  free (data);
+}
+
 struct pubsub_event_collection_t *
 pubsub_event_collection_decode (xmlreader_t * reader)
 {
@@ -132,7 +146,7 @@ pubsub_event_collection_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "node");
   if (avalue != NULL)
     {
-      elm->fNode = avalue;
+      elm->fNode = (char *) avalue;
     }
   int type = 0;
   while (1)
@@ -152,13 +166,13 @@ pubsub_event_collection_decode (xmlreader_t * reader)
 	      avalue = xmlreader_attribute (reader, NULL, "node");
 	      if (avalue != NULL)
 		{
-		  elm->fType.fNode = avalue;
+		  elm->fType.fNode = (char *) avalue;
 		}
-	      if (xmlreader_skip_element (reader) != -1)
+	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
-	    }			// any end
-	}			// case end
-    }				// while end
+	    }
+	}
+    }
   return elm;
 }
 
@@ -196,6 +210,22 @@ pubsub_event_collection_encode (xmlwriter_t * writer,
   return 0;
 }
 
+void
+pubsub_event_collection_free (struct pubsub_event_collection_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fNode != NULL)
+    {
+      free (data->fNode);
+    }
+  if (data->fType.fNode != NULL)
+    {
+      free (data->fType.fNode);
+    }
+  free (data);
+}
+
 struct pubsub_event_configuration_t *
 pubsub_event_configuration_decode (xmlreader_t * reader)
 {
@@ -208,7 +238,7 @@ pubsub_event_configuration_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "node");
   if (avalue != NULL)
     {
-      elm->fNode = avalue;
+      elm->fNode = (char *) avalue;
     }
   int type = 0;
   while (1)
@@ -233,9 +263,9 @@ pubsub_event_configuration_decode (xmlreader_t * reader)
 		  }
 		elm->fXdata = newel;
 	      }
-	  }			// end here
-	}			// case end
-    }				// while end
+	  }
+	}
+    }
   return elm;
 }
 
@@ -265,6 +295,22 @@ pubsub_event_configuration_encode (xmlwriter_t * writer,
   return 0;
 }
 
+void
+pubsub_event_configuration_free (struct pubsub_event_configuration_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fNode != NULL)
+    {
+      free (data->fNode);
+    }
+  if (data->fXdata != NULL)
+    {
+      xdata_x_free (data->fXdata);
+    }
+  free (data);
+}
+
 struct pubsub_event_delete_t *
 pubsub_event_delete_decode (xmlreader_t * reader)
 {
@@ -277,7 +323,7 @@ pubsub_event_delete_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "node");
   if (avalue != NULL)
     {
-      elm->fNode = avalue;
+      elm->fNode = (char *) avalue;
     }
   int type = 0;
   while (1)
@@ -298,13 +344,13 @@ pubsub_event_delete_decode (xmlreader_t * reader)
 	      avalue = xmlreader_attribute (reader, NULL, "url");
 	      if (avalue != NULL)
 		{
-		  elm->fRedirect.fUrl = avalue;
+		  elm->fRedirect.fUrl = (char *) avalue;
 		}
-	      if (xmlreader_skip_element (reader) != -1)
+	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	    }
+	}
+    }
   return elm;
 }
 
@@ -340,6 +386,22 @@ pubsub_event_delete_encode (xmlwriter_t * writer,
   return 0;
 }
 
+void
+pubsub_event_delete_free (struct pubsub_event_delete_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fNode != NULL)
+    {
+      free (data->fNode);
+    }
+  if (data->fRedirect.fUrl != NULL)
+    {
+      free (data->fRedirect.fUrl);
+    }
+  free (data);
+}
+
 struct pubsub_event_items_t *
 pubsub_event_items_decode (xmlreader_t * reader)
 {
@@ -352,7 +414,7 @@ pubsub_event_items_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "node");
   if (avalue != NULL)
     {
-      elm->fNode = avalue;
+      elm->fNode = (char *) avalue;
     }
   int type = 0;
   while (1)
@@ -375,8 +437,9 @@ pubsub_event_items_decode (xmlreader_t * reader)
 		{
 		  return NULL;
 		}
-	      vlist_append ((vlist_t **) & elm->fItems, (void *) newel,
-			    EXTENSION_TYPE_PUBSUB_EVENT_ITEM);
+	      if (elm->fItems == NULL)
+		elm->fItems = array_new (sizeof (extension_t), 0);
+	      array_append (elm->fItems, newel);
 	    }
 	  else if ((strcmp (namespace, ns_pubsub_event) == 0)
 		   && (strcmp (name, "retract") == 0))
@@ -387,11 +450,12 @@ pubsub_event_items_decode (xmlreader_t * reader)
 		{
 		  return NULL;
 		}
-	      vlist_append ((vlist_t **) & elm->fRetracts, (void *) newel,
-			    EXTENSION_TYPE_PUBSUB_EVENT_RETRACT);
+	      if (elm->fRetracts == NULL)
+		elm->fRetracts = array_new (sizeof (extension_t), 0);
+	      array_append (elm->fRetracts, newel);
 	    }
-	}			// case end
-    }				// while end
+	}
+    }
   return elm;
 }
 
@@ -410,29 +474,61 @@ pubsub_event_items_encode (xmlwriter_t * writer,
 	return err;
     }
   {
-    vlist_t *curr = (vlist_t *) elm->fItems;
-    while (curr != NULL)
+    int len = array_length (elm->fItems);
+    int i = 0;
+    for (i = 0; i < len; i++)
       {
-	err = pubsub_event_item_encode (writer, curr->data);
+	extension_t *ext = array_get (elm->fItems, i);
+	err = pubsub_event_item_encode (writer, ext->data);
 	if (err != 0)
 	  return err;
-	curr = curr->next;
       }
   }
   {
-    vlist_t *curr = (vlist_t *) elm->fRetracts;
-    while (curr != NULL)
+    int len = array_length (elm->fRetracts);
+    int i = 0;
+    for (i = 0; i < len; i++)
       {
-	err = pubsub_event_retract_encode (writer, curr->data);
+	extension_t *ext = array_get (elm->fRetracts, i);
+	err = pubsub_event_retract_encode (writer, ext->data);
 	if (err != 0)
 	  return err;
-	curr = curr->next;
       }
   }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+pubsub_event_items_free (struct pubsub_event_items_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fNode != NULL)
+    {
+      free (data->fNode);
+    }
+  {
+    int len = array_length (data->fItems);
+    int i = 0;
+    for (i = 0; i < len; i++)
+      {
+	pubsub_event_item_free (array_get (data->fItems, i));
+      }
+    array_free (data->fItems);
+  }
+  {
+    int len = array_length (data->fRetracts);
+    int i = 0;
+    for (i = 0; i < len; i++)
+      {
+	pubsub_event_retract_free (array_get (data->fRetracts, i));
+      }
+    array_free (data->fRetracts);
+  }
+  free (data);
 }
 
 struct pubsub_event_item_t *
@@ -447,17 +543,17 @@ pubsub_event_item_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "id");
   if (avalue != NULL)
     {
-      elm->fId = avalue;
+      elm->fId = (char *) avalue;
     }
   avalue = xmlreader_attribute (reader, NULL, "node");
   if (avalue != NULL)
     {
-      elm->fNode = avalue;
+      elm->fNode = (char *) avalue;
     }
   avalue = xmlreader_attribute (reader, NULL, "publisher");
   if (avalue != NULL)
     {
-      elm->fPublisher = avalue;
+      elm->fPublisher = (char *) avalue;
     }
   int type = 0;
   while (1)
@@ -473,10 +569,11 @@ pubsub_event_item_decode (xmlreader_t * reader)
 	  const char *name = xmlreader_get_name (reader);
 	  if (strcmp (namespace, ns_pubsub_event) != 0)
 	    {
-	      extension_t *newel = xstream_extension_decode (reader);
+	      extension_t *newel = malloc (sizeof (extension_t));
+	      int err = xstream_extension_decode (reader, newel);
 	      if (reader->err != 0)
 		return NULL;
-	      if (newel == NULL)
+	      if (err == ERR_EXTENSION_NOT_FOUND)
 		{
 		  if (xmlreader_skip_element (reader) == -1)
 		    return NULL;
@@ -485,9 +582,9 @@ pubsub_event_item_decode (xmlreader_t * reader)
 		{
 		  elm->fEvent = newel;
 		}
-	    }			// end of if strcmp
-	}			// case end
-    }				// while end
+	    }
+	}
+    }
   return elm;
 }
 
@@ -531,6 +628,31 @@ pubsub_event_item_encode (xmlwriter_t * writer,
   return 0;
 }
 
+void
+pubsub_event_item_free (struct pubsub_event_item_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fId != NULL)
+    {
+      free (data->fId);
+    }
+  if (data->fNode != NULL)
+    {
+      free (data->fNode);
+    }
+  if (data->fPublisher != NULL)
+    {
+      free (data->fPublisher);
+    }
+  if (data->fEvent != NULL)
+    {
+      xstream_extension_free (data->fEvent);
+      free (data->fEvent);
+    }
+  free (data);
+}
+
 struct pubsub_event_purge_t *
 pubsub_event_purge_decode (xmlreader_t * reader)
 {
@@ -543,9 +665,9 @@ pubsub_event_purge_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "node");
   if (avalue != NULL)
     {
-      elm->fNode = avalue;
+      elm->fNode = (char *) avalue;
     }
-  if (xmlreader_skip_element (reader) != -1)
+  if (xmlreader_skip_element (reader) == -1)
     return NULL;
   return elm;
 }
@@ -570,6 +692,18 @@ pubsub_event_purge_encode (xmlwriter_t * writer,
   return 0;
 }
 
+void
+pubsub_event_purge_free (struct pubsub_event_purge_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fNode != NULL)
+    {
+      free (data->fNode);
+    }
+  free (data);
+}
+
 struct pubsub_event_retract_t *
 pubsub_event_retract_decode (xmlreader_t * reader)
 {
@@ -582,9 +716,9 @@ pubsub_event_retract_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "id");
   if (avalue != NULL)
     {
-      elm->fId = avalue;
+      elm->fId = (char *) avalue;
     }
-  if (xmlreader_skip_element (reader) != -1)
+  if (xmlreader_skip_element (reader) == -1)
     return NULL;
   return elm;
 }
@@ -607,6 +741,18 @@ pubsub_event_retract_encode (xmlwriter_t * writer,
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+pubsub_event_retract_free (struct pubsub_event_retract_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fId != NULL)
+    {
+      free (data->fId);
+    }
+  free (data);
 }
 
 struct pubsub_event_subscription_t *
@@ -632,12 +778,12 @@ pubsub_event_subscription_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "node");
   if (avalue != NULL)
     {
-      elm->fNode = avalue;
+      elm->fNode = (char *) avalue;
     }
   avalue = xmlreader_attribute (reader, NULL, "subid");
   if (avalue != NULL)
     {
-      elm->fSubid = avalue;
+      elm->fSubid = (char *) avalue;
     }
   avalue = xmlreader_attribute (reader, NULL, "subscription");
   if (avalue != NULL)
@@ -645,7 +791,7 @@ pubsub_event_subscription_decode (xmlreader_t * reader)
       elm->fSubscription =
 	enum_pubsub_event_subscription_subscription_from_string (avalue);
     }
-  if (xmlreader_skip_element (reader) != -1)
+  if (xmlreader_skip_element (reader) == -1)
     return NULL;
   return elm;
 }
@@ -698,6 +844,30 @@ pubsub_event_subscription_encode (xmlwriter_t * writer,
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+pubsub_event_subscription_free (struct pubsub_event_subscription_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fExpiry != NULL)
+    {
+      free (data->fExpiry);
+    }
+  if (data->fJid != NULL)
+    {
+      jid_free (data->fJid);
+    }
+  if (data->fNode != NULL)
+    {
+      free (data->fNode);
+    }
+  if (data->fSubid != NULL)
+    {
+      free (data->fSubid);
+    }
+  free (data);
 }
 
 enum pubsub_event_collection_type_type_t

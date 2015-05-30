@@ -23,7 +23,7 @@ int utf8_append (char* str, uint32_t u) {
   if (u < 0x80)
     *str = (char) u;
   else if (u <= 0x7ff) {
-    *str++, (char) (0xc0 | (u >> 6));
+    *str++ = (char) (0xc0 | (u >> 6));
     *str = (char) (0x80 | (u & 0x3f));
   } else if (u <= 0xffff) {
     if (u >= 0xd800 && u < 0xe000)

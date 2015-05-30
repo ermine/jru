@@ -1,5 +1,6 @@
 #include "xep_mood_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_mood = "http://jabber.org/protocol/mood";
 
@@ -29,16 +30,16 @@ mood_mood_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fText = (const char *) value;
-	    }			// for end part 1
+	      elm->fText = (char *) value;
+	    }
 	  else if (strcmp (namespace, ns_mood) != 0)
 	    {
 	      elm->fMood = enum_mood_mood_mood_from_string (name);
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
-	    }			// any end
-	}			// case end
-    }				// while end
+	    }
+	}
+    }
   return elm;
 }
 
@@ -66,6 +67,21 @@ mood_mood_encode (xmlwriter_t * writer, struct mood_mood_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+mood_mood_free (struct mood_mood_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fMood != 0)
+    {
+    }
+  if (data->fText != NULL)
+    {
+      free (data->fText);
+    }
+  free (data);
 }
 
 enum mood_mood_mood_t

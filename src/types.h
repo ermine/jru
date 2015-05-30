@@ -9,7 +9,7 @@
 #include <stdbool.h>
 
 #include "stringpair.h"
-#include "llist.h"
+#include "array.h"
 
 enum extension_type;
 
@@ -24,6 +24,7 @@ typedef stringpair_t langstring_t;
 
 int langstring_decode (xmlreader_t* reader, langstring_t *map);
 int langstring_encode (xmlwriter_t* writer, const char* space, const char* local, langstring_t *map);
+void langstring_free (langstring_t* map);
 
 struct tm* datetime_parse(const char* value);
 const char* datetime_to_string(struct tm* data);

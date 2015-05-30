@@ -1,5 +1,6 @@
 #include "xep_iqversion_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_iqversion = "jabber:iq:version";
 
@@ -29,26 +30,26 @@ iqversion_version_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fName = (const char *) value;
-	    }			// for end part 1
+	      elm->fName = (char *) value;
+	    }
 	  else if ((strcmp (name, "version") == 0)
 		   && (strcmp (namespace, ns_iqversion) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fVersion = (const char *) value;
-	    }			// for end part 1
+	      elm->fVersion = (char *) value;
+	    }
 	  else if ((strcmp (name, "os") == 0)
 		   && (strcmp (namespace, ns_iqversion) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fOs = (const char *) value;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      elm->fOs = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -85,4 +86,24 @@ iqversion_version_encode (xmlwriter_t * writer,
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+iqversion_version_free (struct iqversion_version_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fName != NULL)
+    {
+      free (data->fName);
+    }
+  if (data->fVersion != NULL)
+    {
+      free (data->fVersion);
+    }
+  if (data->fOs != NULL)
+    {
+      free (data->fOs);
+    }
+  free (data);
 }

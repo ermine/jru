@@ -34,13 +34,13 @@ const char *enum_sasl_failure_condition_to_string (enum
 
 struct sasl_mechanisms_t
 {
-  vlist_t *fMechanism;
+  array_t *fMechanism;
 };
 
 
 struct sasl_auth_t
 {
-  const char *fMechanism;
+  char *fMechanism;
   unsigned char *fData;
   int fData_len;
 };
@@ -77,15 +77,21 @@ struct sasl_failure_t
 struct sasl_mechanisms_t *sasl_mechanisms_decode (xmlreader_t * reader);
 int sasl_mechanisms_encode (xmlwriter_t * writer,
 			    struct sasl_mechanisms_t *data);
+void sasl_mechanisms_free (struct sasl_mechanisms_t *data);
 struct sasl_auth_t *sasl_auth_decode (xmlreader_t * reader);
 int sasl_auth_encode (xmlwriter_t * writer, struct sasl_auth_t *data);
+void sasl_auth_free (struct sasl_auth_t *data);
 struct sasl_success_t *sasl_success_decode (xmlreader_t * reader);
 int sasl_success_encode (xmlwriter_t * writer, struct sasl_success_t *data);
+void sasl_success_free (struct sasl_success_t *data);
 struct sasl_challenge_t *sasl_challenge_decode (xmlreader_t * reader);
 int sasl_challenge_encode (xmlwriter_t * writer,
 			   struct sasl_challenge_t *data);
+void sasl_challenge_free (struct sasl_challenge_t *data);
 struct sasl_response_t *sasl_response_decode (xmlreader_t * reader);
 int sasl_response_encode (xmlwriter_t * writer, struct sasl_response_t *data);
+void sasl_response_free (struct sasl_response_t *data);
 struct sasl_failure_t *sasl_failure_decode (xmlreader_t * reader);
 int sasl_failure_encode (xmlwriter_t * writer, struct sasl_failure_t *data);
+void sasl_failure_free (struct sasl_failure_t *data);
 #endif

@@ -1,5 +1,6 @@
 #include "xep_disco_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_disco_info = "http://jabber.org/protocol/disco#info";
 const char *ns_disco_items = "http://jabber.org/protocol/disco#items";
@@ -16,7 +17,7 @@ disco_info_info_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "node");
   if (avalue != NULL)
     {
-      elm->fNode = avalue;
+      elm->fNode = (char *) avalue;
     }
   int type = 0;
   while (1)
@@ -39,8 +40,9 @@ disco_info_info_decode (xmlreader_t * reader)
 		{
 		  return NULL;
 		}
-	      vlist_append ((vlist_t **) & elm->fIdentities, (void *) newel,
-			    EXTENSION_TYPE_DISCO_INFO_IDENTITY);
+	      if (elm->fIdentities == NULL)
+		elm->fIdentities = array_new (sizeof (extension_t), 0);
+	      array_append (elm->fIdentities, newel);
 	    }
 	  else if ((strcmp (namespace, ns_disco_info) == 0)
 		   && (strcmp (name, "feature") == 0))
@@ -51,11 +53,12 @@ disco_info_info_decode (xmlreader_t * reader)
 		{
 		  return NULL;
 		}
-	      vlist_append ((vlist_t **) & elm->fFeatures, (void *) newel,
-			    EXTENSION_TYPE_DISCO_INFO_FEATURE);
+	      if (elm->fFeatures == NULL)
+		elm->fFeatures = array_new (sizeof (extension_t), 0);
+	      array_append (elm->fFeatures, newel);
 	    }
-	}			// case end
-    }				// while end
+	}
+    }
   return elm;
 }
 
@@ -73,29 +76,61 @@ disco_info_info_encode (xmlwriter_t * writer, struct disco_info_info_t *elm)
 	return err;
     }
   {
-    vlist_t *curr = (vlist_t *) elm->fIdentities;
-    while (curr != NULL)
+    int len = array_length (elm->fIdentities);
+    int i = 0;
+    for (i = 0; i < len; i++)
       {
-	err = disco_info_identity_encode (writer, curr->data);
+	extension_t *ext = array_get (elm->fIdentities, i);
+	err = disco_info_identity_encode (writer, ext->data);
 	if (err != 0)
 	  return err;
-	curr = curr->next;
       }
   }
   {
-    vlist_t *curr = (vlist_t *) elm->fFeatures;
-    while (curr != NULL)
+    int len = array_length (elm->fFeatures);
+    int i = 0;
+    for (i = 0; i < len; i++)
       {
-	err = disco_info_feature_encode (writer, curr->data);
+	extension_t *ext = array_get (elm->fFeatures, i);
+	err = disco_info_feature_encode (writer, ext->data);
 	if (err != 0)
 	  return err;
-	curr = curr->next;
       }
   }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+disco_info_info_free (struct disco_info_info_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fNode != NULL)
+    {
+      free (data->fNode);
+    }
+  {
+    int len = array_length (data->fIdentities);
+    int i = 0;
+    for (i = 0; i < len; i++)
+      {
+	disco_info_identity_free (array_get (data->fIdentities, i));
+      }
+    array_free (data->fIdentities);
+  }
+  {
+    int len = array_length (data->fFeatures);
+    int i = 0;
+    for (i = 0; i < len; i++)
+      {
+	disco_info_feature_free (array_get (data->fFeatures, i));
+      }
+    array_free (data->fFeatures);
+  }
+  free (data);
 }
 
 struct disco_info_identity_t *
@@ -110,14 +145,14 @@ disco_info_identity_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "category");
   if (avalue != NULL)
     {
-      elm->fCategory = avalue;
+      elm->fCategory = (char *) avalue;
     }
   avalue = xmlreader_attribute (reader, NULL, "type");
   if (avalue != NULL)
     {
-      elm->fType = avalue;
+      elm->fType = (char *) avalue;
     }
-  if (xmlreader_skip_element (reader) != -1)
+  if (xmlreader_skip_element (reader) == -1)
     return NULL;
   return elm;
 }
@@ -148,6 +183,22 @@ disco_info_identity_encode (xmlwriter_t * writer,
   return 0;
 }
 
+void
+disco_info_identity_free (struct disco_info_identity_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fCategory != NULL)
+    {
+      free (data->fCategory);
+    }
+  if (data->fType != NULL)
+    {
+      free (data->fType);
+    }
+  free (data);
+}
+
 struct disco_info_feature_t *
 disco_info_feature_decode (xmlreader_t * reader)
 {
@@ -160,9 +211,9 @@ disco_info_feature_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "var");
   if (avalue != NULL)
     {
-      elm->fVar = avalue;
+      elm->fVar = (char *) avalue;
     }
-  if (xmlreader_skip_element (reader) != -1)
+  if (xmlreader_skip_element (reader) == -1)
     return NULL;
   return elm;
 }
@@ -185,4 +236,16 @@ disco_info_feature_encode (xmlwriter_t * writer,
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+disco_info_feature_free (struct disco_info_feature_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fVar != NULL)
+    {
+      free (data->fVar);
+    }
+  free (data);
 }

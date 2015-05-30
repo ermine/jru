@@ -14,10 +14,11 @@ extern const char *ns_iqlast;
 struct iqlast_last_t
 {
   uint32_t *fSeconds;
-  const char *fExtra;
+  char *fExtra;
 };
 
 
 struct iqlast_last_t *iqlast_last_decode (xmlreader_t * reader);
 int iqlast_last_encode (xmlwriter_t * writer, struct iqlast_last_t *data);
+void iqlast_last_free (struct iqlast_last_t *data);
 #endif

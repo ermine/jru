@@ -1,5 +1,6 @@
 #include "bind_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_bind = "urn:ietf:params:xml:ns:xmpp-bind";
 
@@ -29,8 +30,8 @@ bind_bind_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fResource = (const char *) value;
-	    }			// for end part 1
+	      elm->fResource = (char *) value;
+	    }
 	  else if ((strcmp (name, "jid") == 0)
 		   && (strcmp (namespace, ns_bind) == 0))
 	    {
@@ -39,9 +40,9 @@ bind_bind_decode (xmlreader_t * reader)
 		return NULL;
 	      jid_t *jid = jid_of_string ((const char *) s);
 	      elm->fJid = jid;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	    }
+	}
+    }
   return elm;
 }
 
@@ -72,4 +73,20 @@ bind_bind_encode (xmlwriter_t * writer, struct bind_bind_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+bind_bind_free (struct bind_bind_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fResource != NULL)
+    {
+      free (data->fResource);
+    }
+  if (data->fJid != NULL)
+    {
+      jid_free (data->fJid);
+    }
+  free (data);
 }

@@ -1,5 +1,6 @@
 #include "xep_ping_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_ping = "urn:xmpp:ping";
 
@@ -27,4 +28,12 @@ ping_ping_encode (xmlwriter_t * writer, struct ping_ping_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+ping_ping_free (struct ping_ping_t *data)
+{
+  if (data == NULL)
+    return;
+  free (data);
 }

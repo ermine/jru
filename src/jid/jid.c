@@ -34,7 +34,7 @@ jid_t *jid_of_string (const char *str) {
   jid->node = node;
   jid->domain = domain;
   jid->resource = resource;
-  jid->full = NULL;
+  jid->full = NULL;;
 
   return jid;
 }
@@ -47,11 +47,14 @@ void jid_free (jid_t *jid) {
   if (jid->node != NULL)
     free (jid->node);
 
-  if (jid->domain)
+  if (jid->domain != NULL)
     free (jid->domain);
 
-  if (jid->resource)
+  if (jid->resource != NULL)
     free (jid->resource);
+
+  if (jid->full != NULL)
+    free (jid->full);
 
   free (jid);
 }
@@ -63,7 +66,7 @@ char* jid_to_string (jid_t *jid) {
   if (jid->full != NULL)
     return jid->full;
   int len_domain = strlen (jid->domain);
-  int len_node = 0, len_resource = 0 + 1;
+  int len_node = 0, len_resource = 0;
 
   if (jid->node != NULL)
     len_node = strlen (jid->node) + 1;
@@ -81,9 +84,10 @@ char* jid_to_string (jid_t *jid) {
 
   strcpy (jid->full + len_node, jid->domain);
 
-  if (jid->resource != NULL)
-    strcpy (jid->full + len_node + len_domain - 1, jid->resource);
-
+  if (jid->resource != NULL) {
+    jid->full [len_node + len_domain] = '/';
+    strcpy (jid->full + len_node + len_domain + 1, jid->resource);
+  }
   jid->full[len_node + len_domain + len_resource] = '\0';
 
   return jid->full;

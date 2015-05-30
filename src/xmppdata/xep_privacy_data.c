@@ -1,5 +1,6 @@
 #include "xep_privacy_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_privacy = "jabber:iq:privacy";
 
@@ -31,11 +32,12 @@ privacy_privacy_decode (xmlreader_t * reader)
 		{
 		  return NULL;
 		}
-	      vlist_append ((vlist_t **) & elm->fList, (void *) newel,
-			    EXTENSION_TYPE_PRIVACY_LIST);
+	      if (elm->fList == NULL)
+		elm->fList = array_new (sizeof (extension_t), 0);
+	      array_append (elm->fList, newel);
 	    }
-	}			// case end
-    }				// while end
+	}
+    }
   return elm;
 }
 
@@ -59,19 +61,43 @@ privacy_privacy_encode (xmlwriter_t * writer, struct privacy_privacy_t *elm)
 	return err;
     }
   {
-    vlist_t *curr = (vlist_t *) elm->fList;
-    while (curr != NULL)
+    int len = array_length (elm->fList);
+    int i = 0;
+    for (i = 0; i < len; i++)
       {
-	err = privacy_list_encode (writer, curr->data);
+	extension_t *ext = array_get (elm->fList, i);
+	err = privacy_list_encode (writer, ext->data);
 	if (err != 0)
 	  return err;
-	curr = curr->next;
       }
   }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+privacy_privacy_free (struct privacy_privacy_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fActive != NULL)
+    {
+    }
+  if (data->fDefault != NULL)
+    {
+    }
+  {
+    int len = array_length (data->fList);
+    int i = 0;
+    for (i = 0; i < len; i++)
+      {
+	privacy_list_free (array_get (data->fList, i));
+      }
+    array_free (data->fList);
+  }
+  free (data);
 }
 
 struct privacy_active_t *
@@ -86,12 +112,12 @@ privacy_active_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "name");
   if (avalue != NULL)
     {
-      elm->fName = avalue;
+      elm->fName = (char *) avalue;
     }
   const char *value = xmlreader_text (reader);
   if (reader->err != 0)
     return NULL;
-  elm->fExtra = (const char *) value;
+  elm->fExtra = (char *) value;
   return elm;
 }
 
@@ -120,6 +146,22 @@ privacy_active_encode (xmlwriter_t * writer, struct privacy_active_t *elm)
   return 0;
 }
 
+void
+privacy_active_free (struct privacy_active_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fName != NULL)
+    {
+      free (data->fName);
+    }
+  if (data->fExtra != NULL)
+    {
+      free (data->fExtra);
+    }
+  free (data);
+}
+
 struct privacy_default_t *
 privacy_default_decode (xmlreader_t * reader)
 {
@@ -132,12 +174,12 @@ privacy_default_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "name");
   if (avalue != NULL)
     {
-      elm->fName = avalue;
+      elm->fName = (char *) avalue;
     }
   const char *value = xmlreader_text (reader);
   if (reader->err != 0)
     return NULL;
-  elm->fExtra = (const char *) value;
+  elm->fExtra = (char *) value;
   return elm;
 }
 
@@ -166,6 +208,22 @@ privacy_default_encode (xmlwriter_t * writer, struct privacy_default_t *elm)
   return 0;
 }
 
+void
+privacy_default_free (struct privacy_default_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fName != NULL)
+    {
+      free (data->fName);
+    }
+  if (data->fExtra != NULL)
+    {
+      free (data->fExtra);
+    }
+  free (data);
+}
+
 struct privacy_list_t *
 privacy_list_decode (xmlreader_t * reader)
 {
@@ -178,7 +236,7 @@ privacy_list_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "name");
   if (avalue != NULL)
     {
-      elm->fName = avalue;
+      elm->fName = (char *) avalue;
     }
   int type = 0;
   while (1)
@@ -200,11 +258,12 @@ privacy_list_decode (xmlreader_t * reader)
 		{
 		  return NULL;
 		}
-	      vlist_append ((vlist_t **) & elm->fItems, (void *) newel,
-			    EXTENSION_TYPE_PRIVACY_ITEM);
+	      if (elm->fItems == NULL)
+		elm->fItems = array_new (sizeof (extension_t), 0);
+	      array_append (elm->fItems, newel);
 	    }
-	}			// case end
-    }				// while end
+	}
+    }
   return elm;
 }
 
@@ -222,19 +281,41 @@ privacy_list_encode (xmlwriter_t * writer, struct privacy_list_t *elm)
 	return err;
     }
   {
-    vlist_t *curr = (vlist_t *) elm->fItems;
-    while (curr != NULL)
+    int len = array_length (elm->fItems);
+    int i = 0;
+    for (i = 0; i < len; i++)
       {
-	err = privacy_item_encode (writer, curr->data);
+	extension_t *ext = array_get (elm->fItems, i);
+	err = privacy_item_encode (writer, ext->data);
 	if (err != 0)
 	  return err;
-	curr = curr->next;
       }
   }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+privacy_list_free (struct privacy_list_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fName != NULL)
+    {
+      free (data->fName);
+    }
+  {
+    int len = array_length (data->fItems);
+    int i = 0;
+    for (i = 0; i < len; i++)
+      {
+	privacy_item_free (array_get (data->fItems, i));
+      }
+    array_free (data->fItems);
+  }
+  free (data);
 }
 
 struct privacy_item_t *
@@ -264,7 +345,7 @@ privacy_item_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "value");
   if (avalue != NULL)
     {
-      elm->fValue = avalue;
+      elm->fValue = (char *) avalue;
     }
   int type = 0;
   while (1)
@@ -285,7 +366,7 @@ privacy_item_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "message") == 0)
 		   && (strcmp (namespace, ns_privacy) == 0))
 	    {
@@ -293,7 +374,7 @@ privacy_item_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "presence-in") == 0)
 		   && (strcmp (namespace, ns_privacy) == 0))
 	    {
@@ -301,7 +382,7 @@ privacy_item_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "presence-out") == 0)
 		   && (strcmp (namespace, ns_privacy) == 0))
 	    {
@@ -309,9 +390,9 @@ privacy_item_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	    }
+	}
+    }
   return elm;
 }
 
@@ -383,6 +464,34 @@ privacy_item_encode (xmlwriter_t * writer, struct privacy_item_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+privacy_item_free (struct privacy_item_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fOrder != NULL)
+    {
+      free (data->fOrder);
+    }
+  if (data->fValue != NULL)
+    {
+      free (data->fValue);
+    }
+  if (data->fIq)
+    {
+    }
+  if (data->fMessage)
+    {
+    }
+  if (data->fPresence_in)
+    {
+    }
+  if (data->fPresence_out)
+    {
+    }
+  free (data);
 }
 
 enum privacy_item_action_t

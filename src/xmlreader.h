@@ -13,24 +13,18 @@ typedef enum {
 } xmlreader_nodetype_enum;
 
 
-struct xmlreader_tag_t;
-
-struct xmlreader_tag_t {
-  struct xmlreader_tag_t* prev;
-  const char* name;
-  array_t* namespaces;
-};
-
 typedef struct {
   int err;
-  bufio_reader_t* buf;
-  uint32_t saved;
-  xmlreader_nodetype_enum nodetype;
-  array_t* attributes;
-  struct xmlreader_tag_t* tags;
+  bufio_reader_t bufio;
+  array_t* stack;
+  int iterator;
+  struct xmlreader_element_t* curr;
+  int state;
+  array_t* tags;
+  char* tmpbuf;
 } xmlreader_t;
 
-xmlreader_t* xmlreader_new (int fd);
+void xmlreader_init (xmlreader_t* reader);
 void xmlreader_free (xmlreader_t* reader);
 void xmlreader_reset (xmlreader_t* reader);
 int xmlreader_next (xmlreader_t* reader);
@@ -41,5 +35,7 @@ const char* xmlreader_attribute (xmlreader_t* reader, const char* space, const c
 const char* xmlreader_text (xmlreader_t* reader);
 int xmlreader_skip_element (xmlreader_t* reader);
 int xmlreader_base64 (xmlreader_t* reader, unsigned char** result, int* result_len);
+void xmlreader_read (xmlreader_t* reader);
+void xmlreader_stack_clean (xmlreader_t* reader, int start);
 
 #endif

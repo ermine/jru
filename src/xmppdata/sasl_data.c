@@ -1,5 +1,6 @@
 #include "sasl_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_sasl = "urn:ietf:params:xml:ns:xmpp-sasl";
 
@@ -29,11 +30,12 @@ sasl_mechanisms_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      vlist_append ((vlist_t **) & elm->fMechanism, (void *) value,
-			    0);
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      if (elm->fMechanism == NULL)
+		elm->fMechanism = array_new (sizeof (char *), 0);
+	      array_append (elm->fMechanism, (void *) &value);
+	    }
+	}
+    }
   return elm;
 }
 
@@ -44,19 +46,37 @@ sasl_mechanisms_encode (xmlwriter_t * writer, struct sasl_mechanisms_t *elm)
   err = xmlwriter_start_element (writer, ns_sasl, "mechanisms");
   if (err != 0)
     return err;
-  vlist_t *curr = elm->fMechanism;
-  while (curr != NULL)
+  int len = array_length (elm->fMechanism);
+  int i = 0;
+  for (i = 0; i < len; i++)
     {
+      char **value = array_get (elm->fMechanism, i);
       err =
-	xmlwriter_simple_element (writer, ns_sasl, "mechanism", curr->data);
+	xmlwriter_simple_element (writer, ns_sasl, "mechanism",
+				  (char *) value);
       if (err != 0)
 	return err;
-      curr = curr->next;
     }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+sasl_mechanisms_free (struct sasl_mechanisms_t *data)
+{
+  if (data == NULL)
+    return;
+  int len = array_length (data->fMechanism);
+  int i = 0;
+  for (i = 0; i < len; i++)
+    {
+      char **value = array_get (data->fMechanism, i);
+      free (*value);
+    }
+  array_free (data->fMechanism);
+  free (data);
 }
 
 struct sasl_auth_t *
@@ -71,7 +91,7 @@ sasl_auth_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "mechanism");
   if (avalue != NULL)
     {
-      elm->fMechanism = avalue;
+      elm->fMechanism = (char *) avalue;
     }
   if (xmlreader_base64 (reader, &elm->fData, &elm->fData_len) != 0)
     return NULL;
@@ -101,6 +121,22 @@ sasl_auth_encode (xmlwriter_t * writer, struct sasl_auth_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+sasl_auth_free (struct sasl_auth_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fMechanism != NULL)
+    {
+      free (data->fMechanism);
+    }
+  if (data->fData != NULL)
+    {
+      free (data->fData);
+    }
+  free (data);
 }
 
 struct sasl_success_t *
@@ -135,6 +171,18 @@ sasl_success_encode (xmlwriter_t * writer, struct sasl_success_t *elm)
   return 0;
 }
 
+void
+sasl_success_free (struct sasl_success_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fData != NULL)
+    {
+      free (data->fData);
+    }
+  free (data);
+}
+
 struct sasl_challenge_t *
 sasl_challenge_decode (xmlreader_t * reader)
 {
@@ -165,6 +213,18 @@ sasl_challenge_encode (xmlwriter_t * writer, struct sasl_challenge_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+sasl_challenge_free (struct sasl_challenge_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fData != NULL)
+    {
+      free (data->fData);
+    }
+  free (data);
 }
 
 struct sasl_response_t *
@@ -199,6 +259,18 @@ sasl_response_encode (xmlwriter_t * writer, struct sasl_response_t *elm)
   return 0;
 }
 
+void
+sasl_response_free (struct sasl_response_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fData != NULL)
+    {
+      free (data->fData);
+    }
+  free (data);
+}
+
 struct sasl_failure_t *
 sasl_failure_decode (xmlreader_t * reader)
 {
@@ -223,16 +295,16 @@ sasl_failure_decode (xmlreader_t * reader)
 	      && (strcmp (namespace, ns_sasl) == 0))
 	    {
 	      langstring_decode (reader, elm->fText);
-	    }			// for end part 1
+	    }
 	  else if (strcmp (namespace, ns_sasl) != 0)
 	    {
 	      elm->fCondition =
 		enum_sasl_failure_condition_from_string (name);
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
-	    }			// any end
-	}			// case end
-    }				// while end
+	    }
+	}
+    }
   return elm;
 }
 
@@ -261,6 +333,21 @@ sasl_failure_encode (xmlwriter_t * writer, struct sasl_failure_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+sasl_failure_free (struct sasl_failure_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fText != NULL)
+    {
+      langstring_free (data->fText);
+    }
+  if (data->fCondition != 0)
+    {
+    }
+  free (data);
 }
 
 enum sasl_failure_condition_t

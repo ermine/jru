@@ -1,5 +1,6 @@
 #include "xep_iqregister_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_iqregister = "jabber:iq:register";
 
@@ -35,7 +36,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fInstructions = (const char *) value;
+	      elm->fFields.fInstructions = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "username") == 0))
@@ -43,7 +44,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fUsername = (const char *) value;
+	      elm->fFields.fUsername = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "nick") == 0))
@@ -51,7 +52,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fNick = (const char *) value;
+	      elm->fFields.fNick = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "password") == 0))
@@ -59,7 +60,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fPassword = (const char *) value;
+	      elm->fFields.fPassword = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "name") == 0))
@@ -67,7 +68,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fName = (const char *) value;
+	      elm->fFields.fName = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "first") == 0))
@@ -75,7 +76,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fFirst = (const char *) value;
+	      elm->fFields.fFirst = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "last") == 0))
@@ -83,7 +84,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fLast = (const char *) value;
+	      elm->fFields.fLast = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "email") == 0))
@@ -91,7 +92,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fEmail = (const char *) value;
+	      elm->fFields.fEmail = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "address") == 0))
@@ -99,7 +100,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fAddress = (const char *) value;
+	      elm->fFields.fAddress = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "city") == 0))
@@ -107,7 +108,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fCity = (const char *) value;
+	      elm->fFields.fCity = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "state") == 0))
@@ -115,7 +116,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fState = (const char *) value;
+	      elm->fFields.fState = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "zip") == 0))
@@ -123,7 +124,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fZip = (const char *) value;
+	      elm->fFields.fZip = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "phone") == 0))
@@ -131,7 +132,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fPhone = (const char *) value;
+	      elm->fFields.fPhone = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "url") == 0))
@@ -139,7 +140,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fUrl = (const char *) value;
+	      elm->fFields.fUrl = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "date") == 0))
@@ -147,7 +148,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fDate = (const char *) value;
+	      elm->fFields.fDate = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "misc") == 0))
@@ -155,7 +156,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fMisc = (const char *) value;
+	      elm->fFields.fMisc = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "text") == 0))
@@ -163,7 +164,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fText = (const char *) value;
+	      elm->fFields.fText = (char *) value;
 	    }
 	  else if ((strcmp (namespace, ns_iqregister) == 0)
 		   && (strcmp (name, "key") == 0))
@@ -171,7 +172,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFields.fKey = (const char *) value;
+	      elm->fFields.fKey = (char *) value;
 	    }
 	  else if ((strcmp (name, "remove") == 0)
 		   && (strcmp (namespace, ns_iqregister) == 0))
@@ -180,7 +181,7 @@ iqregister_query_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (namespace, "jabber:x:data") == 0)
 		   && (strcmp (name, "x") == 0))
 	    {
@@ -201,8 +202,8 @@ iqregister_query_decode (xmlreader_t * reader)
 		}
 	      elm->fXoob = newel;
 	    }
-	}			// case end
-    }				// while end
+	}
+    }
   return elm;
 }
 
@@ -386,4 +387,98 @@ iqregister_query_encode (xmlwriter_t * writer, struct iqregister_query_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+iqregister_query_free (struct iqregister_query_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fFields.fRegistered)
+    {
+    }
+  if (data->fFields.fInstructions != NULL)
+    {
+      free (data->fFields.fInstructions);
+    }
+  if (data->fFields.fUsername != NULL)
+    {
+      free (data->fFields.fUsername);
+    }
+  if (data->fFields.fNick != NULL)
+    {
+      free (data->fFields.fNick);
+    }
+  if (data->fFields.fPassword != NULL)
+    {
+      free (data->fFields.fPassword);
+    }
+  if (data->fFields.fName != NULL)
+    {
+      free (data->fFields.fName);
+    }
+  if (data->fFields.fFirst != NULL)
+    {
+      free (data->fFields.fFirst);
+    }
+  if (data->fFields.fLast != NULL)
+    {
+      free (data->fFields.fLast);
+    }
+  if (data->fFields.fEmail != NULL)
+    {
+      free (data->fFields.fEmail);
+    }
+  if (data->fFields.fAddress != NULL)
+    {
+      free (data->fFields.fAddress);
+    }
+  if (data->fFields.fCity != NULL)
+    {
+      free (data->fFields.fCity);
+    }
+  if (data->fFields.fState != NULL)
+    {
+      free (data->fFields.fState);
+    }
+  if (data->fFields.fZip != NULL)
+    {
+      free (data->fFields.fZip);
+    }
+  if (data->fFields.fPhone != NULL)
+    {
+      free (data->fFields.fPhone);
+    }
+  if (data->fFields.fUrl != NULL)
+    {
+      free (data->fFields.fUrl);
+    }
+  if (data->fFields.fDate != NULL)
+    {
+      free (data->fFields.fDate);
+    }
+  if (data->fFields.fMisc != NULL)
+    {
+      free (data->fFields.fMisc);
+    }
+  if (data->fFields.fText != NULL)
+    {
+      free (data->fFields.fText);
+    }
+  if (data->fFields.fKey != NULL)
+    {
+      free (data->fFields.fKey);
+    }
+  if (data->fRemove)
+    {
+    }
+  if (data->fXdata != NULL)
+    {
+      xdata_x_free (data->fXdata);
+    }
+  if (data->fXoob != NULL)
+    {
+      xoob_x_free (data->fXoob);
+    }
+  free (data);
 }

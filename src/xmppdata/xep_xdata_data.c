@@ -1,5 +1,6 @@
 #include "xep_xdata_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_xdata = "jabber:x:data";
 
@@ -35,8 +36,8 @@ xdata_x_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fTitle = (const char *) value;
-	    }			// for end part 1
+	      elm->fTitle = (char *) value;
+	    }
 	  else if ((strcmp (name, "reported") == 0)
 		   && (strcmp (namespace, ns_xdata) == 0))
 	    {
@@ -55,19 +56,20 @@ xdata_x_decode (xmlreader_t * reader)
 			{
 			  struct xdata_field_t *newel =
 			    xdata_field_decode (reader);
-			  if (newel == NULL)
+			  if (newel != NULL)
 			    {
 			      return NULL;
 			    }
-			  vlist_append ((vlist_t **) & elm->fReported,
-					(void *) newel,
-					EXTENSION_TYPE_XDATA_FIELD);
+			  if (elm->fReported == NULL)
+			    elm->fReported =
+			      array_new (sizeof (extension_t), 0);
+			  array_append (elm->fReported, newel);
 			}
 		    }
 		}
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	    }
+	}
+    }
   return elm;
 }
 
@@ -95,32 +97,63 @@ xdata_x_encode (xmlwriter_t * writer, struct xdata_x_t *elm)
   err = xmlwriter_start_element (writer, ns_xdata, "reported");
   if (err != 0)
     return err;
-  vlist_t *curr = elm->fReported;
-  while (curr != NULL)
+  int len = array_length (elm->fReported);
+  int i = 0;
+  for (i = 0; i < len; i++)
     {
-//tut
-      err = xdata_field_encode (writer, curr->data);
+      struct xdata_field_t *data = array_get (elm->fReported, i);
+      err = xdata_field_encode (writer, data);
       if (err != 0)
 	return err;
-      curr = curr->next;
     }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   {
-    vlist_t *curr = elm->fFields;
-    while (curr != NULL)
+    int len = array_length (elm->fFields);
+    int i = 0;
+    for (i = 0; i < len; i++)
       {
-	err = xstream_extension_encode (writer, curr->data, curr->type);
+	extension_t *ext = array_get (elm->fFields, i);
+	err = xstream_extension_encode (writer, ext->data, ext->type);
 	if (err != 0)
 	  return -1;
-	curr = curr->next;
       }
   }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+xdata_x_free (struct xdata_x_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fTitle != NULL)
+    {
+      free (data->fTitle);
+    }
+  int len = array_length (data->fReported);
+  int i = 0;
+  for (i = 0; i < len; i++)
+    {
+      struct xdata_field_t *item = array_get (data->fReported, i);
+      xdata_field_free (item);
+    }
+  array_free (data->fReported);
+  {
+    int len = array_length (data->fFields);
+    int i = 0;
+    for (i = 0; i < len; i++)
+      {
+	extension_t *ext = array_get (data->fFields, i);
+	xstream_extension_free (ext);
+      }
+    array_free (data->fFields);
+  }
+  free (data);
 }
 
 struct xdata_field_t *
@@ -135,7 +168,7 @@ xdata_field_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "label");
   if (avalue != NULL)
     {
-      elm->fLabel = avalue;
+      elm->fLabel = (char *) avalue;
     }
   avalue = xmlreader_attribute (reader, NULL, "type");
   if (avalue != NULL)
@@ -145,7 +178,7 @@ xdata_field_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "var");
   if (avalue != NULL)
     {
-      elm->fVar = avalue;
+      elm->fVar = (char *) avalue;
     }
   int type = 0;
   while (1)
@@ -165,8 +198,8 @@ xdata_field_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fDesc = (const char *) value;
-	    }			// for end part 1
+	      elm->fDesc = (char *) value;
+	    }
 	  else if ((strcmp (name, "required") == 0)
 		   && (strcmp (namespace, ns_xdata) == 0))
 	    {
@@ -174,15 +207,15 @@ xdata_field_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "value") == 0)
 		   && (strcmp (namespace, ns_xdata) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fValue = (const char *) value;
-	    }			// for end part 1
+	      elm->fValue = (char *) value;
+	    }
 	  else if ((strcmp (namespace, ns_xdata) == 0)
 		   && (strcmp (name, "option") == 0))
 	    {
@@ -191,11 +224,12 @@ xdata_field_decode (xmlreader_t * reader)
 		{
 		  return NULL;
 		}
-	      vlist_append ((vlist_t **) & elm->fOption, (void *) newel,
-			    EXTENSION_TYPE_XDATA_OPTION);
+	      if (elm->fOption == NULL)
+		elm->fOption = array_new (sizeof (extension_t), 0);
+	      array_append (elm->fOption, newel);
 	    }
-	}			// case end
-    }				// while end
+	}
+    }
   return elm;
 }
 
@@ -245,19 +279,56 @@ xdata_field_encode (xmlwriter_t * writer, struct xdata_field_t *elm)
 	return err;
     }
   {
-    vlist_t *curr = (vlist_t *) elm->fOption;
-    while (curr != NULL)
+    int len = array_length (elm->fOption);
+    int i = 0;
+    for (i = 0; i < len; i++)
       {
-	err = xdata_option_encode (writer, curr->data);
+	extension_t *ext = array_get (elm->fOption, i);
+	err = xdata_option_encode (writer, ext->data);
 	if (err != 0)
 	  return err;
-	curr = curr->next;
       }
   }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+xdata_field_free (struct xdata_field_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fLabel != NULL)
+    {
+      free (data->fLabel);
+    }
+  if (data->fVar != NULL)
+    {
+      free (data->fVar);
+    }
+  if (data->fDesc != NULL)
+    {
+      free (data->fDesc);
+    }
+  if (data->fRequired)
+    {
+    }
+  if (data->fValue != NULL)
+    {
+      free (data->fValue);
+    }
+  {
+    int len = array_length (data->fOption);
+    int i = 0;
+    for (i = 0; i < len; i++)
+      {
+	xdata_option_free (array_get (data->fOption, i));
+      }
+    array_free (data->fOption);
+  }
+  free (data);
 }
 
 struct xdata_option_t *
@@ -272,7 +343,7 @@ xdata_option_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "label");
   if (avalue != NULL)
     {
-      elm->fLabel = avalue;
+      elm->fLabel = (char *) avalue;
     }
   int type = 0;
   while (1)
@@ -292,10 +363,10 @@ xdata_option_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fValue = (const char *) value;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      elm->fValue = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -322,6 +393,22 @@ xdata_option_encode (xmlwriter_t * writer, struct xdata_option_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+xdata_option_free (struct xdata_option_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fLabel != NULL)
+    {
+      free (data->fLabel);
+    }
+  if (data->fValue != NULL)
+    {
+      free (data->fValue);
+    }
+  free (data);
 }
 
 enum xdata_x_type_t

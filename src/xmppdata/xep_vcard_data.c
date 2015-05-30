@@ -1,5 +1,6 @@
 #include "xep_vcard_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_vcard = "vcard-temp";
 
@@ -29,18 +30,18 @@ vcard_vcard_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fVERSION = (const char *) value;
-	    }			// for end part 1
+	      elm->fVERSION = (char *) value;
+	    }
 	  else if ((strcmp (name, "FN") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFN = (const char *) value;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      elm->fFN = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -71,19 +72,49 @@ vcard_vcard_encode (xmlwriter_t * writer, struct vcard_vcard_t *elm)
 	return err;
     }
   {
-    vlist_t *curr = elm->fFields;
-    while (curr != NULL)
+    int len = array_length (elm->fFields);
+    int i = 0;
+    for (i = 0; i < len; i++)
       {
-	err = xstream_extension_encode (writer, curr->data, curr->type);
+	extension_t *ext = array_get (elm->fFields, i);
+	err = xstream_extension_encode (writer, ext->data, ext->type);
 	if (err != 0)
 	  return -1;
-	curr = curr->next;
       }
   }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_vcard_free (struct vcard_vcard_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fVERSION != NULL)
+    {
+      free (data->fVERSION);
+    }
+  if (data->fFN != NULL)
+    {
+      free (data->fFN);
+    }
+  if (data->fN != NULL)
+    {
+    }
+  {
+    int len = array_length (data->fFields);
+    int i = 0;
+    for (i = 0; i < len; i++)
+      {
+	extension_t *ext = array_get (data->fFields, i);
+	xstream_extension_free (ext);
+      }
+    array_free (data->fFields);
+  }
+  free (data);
 }
 
 struct vcard_N_t *
@@ -112,42 +143,42 @@ vcard_N_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fFAMILY = (const char *) value;
-	    }			// for end part 1
+	      elm->fFAMILY = (char *) value;
+	    }
 	  else if ((strcmp (name, "GIVEN") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fGIVEN = (const char *) value;
-	    }			// for end part 1
+	      elm->fGIVEN = (char *) value;
+	    }
 	  else if ((strcmp (name, "NIDDLE") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fNIDDLE = (const char *) value;
-	    }			// for end part 1
+	      elm->fNIDDLE = (char *) value;
+	    }
 	  else if ((strcmp (name, "PREFIX") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fPREFIX = (const char *) value;
-	    }			// for end part 1
+	      elm->fPREFIX = (char *) value;
+	    }
 	  else if ((strcmp (name, "SUFFIX") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fSUFFIX = (const char *) value;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      elm->fSUFFIX = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -198,6 +229,34 @@ vcard_N_encode (xmlwriter_t * writer, struct vcard_N_t *elm)
   return 0;
 }
 
+void
+vcard_N_free (struct vcard_N_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fFAMILY != NULL)
+    {
+      free (data->fFAMILY);
+    }
+  if (data->fGIVEN != NULL)
+    {
+      free (data->fGIVEN);
+    }
+  if (data->fNIDDLE != NULL)
+    {
+      free (data->fNIDDLE);
+    }
+  if (data->fPREFIX != NULL)
+    {
+      free (data->fPREFIX);
+    }
+  if (data->fSUFFIX != NULL)
+    {
+      free (data->fSUFFIX);
+    }
+  free (data);
+}
+
 vcard_NICKNAME_t *
 vcard_NICKNAME_decode (xmlreader_t * reader)
 {
@@ -219,6 +278,15 @@ vcard_NICKNAME_encode (xmlwriter_t * writer, vcard_NICKNAME_t * elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_NICKNAME_free (vcard_NICKNAME_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
 }
 
 struct vcard_PHOTO_t *
@@ -247,26 +315,26 @@ vcard_PHOTO_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fTYPE = (const char *) value;
-	    }			// for end part 1
+	      elm->fTYPE = (char *) value;
+	    }
 	  else if ((strcmp (name, "BINVAL") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fBINVAL = (const char *) value;
-	    }			// for end part 1
+	      elm->fBINVAL = (char *) value;
+	    }
 	  else if ((strcmp (name, "EXTVAL") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fEXTVAL = (const char *) value;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      elm->fEXTVAL = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -303,6 +371,26 @@ vcard_PHOTO_encode (xmlwriter_t * writer, struct vcard_PHOTO_t *elm)
   return 0;
 }
 
+void
+vcard_PHOTO_free (struct vcard_PHOTO_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fTYPE != NULL)
+    {
+      free (data->fTYPE);
+    }
+  if (data->fBINVAL != NULL)
+    {
+      free (data->fBINVAL);
+    }
+  if (data->fEXTVAL != NULL)
+    {
+      free (data->fEXTVAL);
+    }
+  free (data);
+}
+
 vcard_BDAY_t *
 vcard_BDAY_decode (xmlreader_t * reader)
 {
@@ -323,6 +411,15 @@ vcard_BDAY_encode (xmlwriter_t * writer, vcard_BDAY_t * elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_BDAY_free (vcard_BDAY_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
 }
 
 enum vcard_DOMINTL_t
@@ -375,7 +472,7 @@ vcard_ADR_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "WORK") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -383,7 +480,7 @@ vcard_ADR_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "POSTAL") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -391,7 +488,7 @@ vcard_ADR_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "PARCEL") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -399,7 +496,7 @@ vcard_ADR_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "PREF") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -407,71 +504,71 @@ vcard_ADR_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "POBOX") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fPOBOX = (const char *) value;
-	    }			// for end part 1
+	      elm->fPOBOX = (char *) value;
+	    }
 	  else if ((strcmp (name, "EXTADD") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fEXTADD = (const char *) value;
-	    }			// for end part 1
+	      elm->fEXTADD = (char *) value;
+	    }
 	  else if ((strcmp (name, "STREET") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fSTREET = (const char *) value;
-	    }			// for end part 1
+	      elm->fSTREET = (char *) value;
+	    }
 	  else if ((strcmp (name, "LOCALITY") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fLOCALITY = (const char *) value;
-	    }			// for end part 1
+	      elm->fLOCALITY = (char *) value;
+	    }
 	  else if ((strcmp (name, "REGION") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fREGION = (const char *) value;
-	    }			// for end part 1
+	      elm->fREGION = (char *) value;
+	    }
 	  else if ((strcmp (name, "PCODE") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fPCODE = (const char *) value;
-	    }			// for end part 1
+	      elm->fPCODE = (char *) value;
+	    }
 	  else if ((strcmp (name, "CTRY") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fCTRY = (const char *) value;
-	    }			// for end part 1
+	      elm->fCTRY = (char *) value;
+	    }
 	  else if (strcmp (namespace, ns_vcard) != 0)
 	    {
 	      elm->fDOMINTL = enum_vcard_DOMINTL_from_string (name);
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
-	    }			// any end
-	}			// case end
-    }				// while end
+	    }
+	}
+    }
   return elm;
 }
 
@@ -572,6 +669,60 @@ vcard_ADR_encode (xmlwriter_t * writer, struct vcard_ADR_t *elm)
   return 0;
 }
 
+void
+vcard_ADR_free (struct vcard_ADR_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fHOME)
+    {
+    }
+  if (data->fWORK)
+    {
+    }
+  if (data->fPOSTAL)
+    {
+    }
+  if (data->fPARCEL)
+    {
+    }
+  if (data->fDOMINTL != 0)
+    {
+    }
+  if (data->fPREF)
+    {
+    }
+  if (data->fPOBOX != NULL)
+    {
+      free (data->fPOBOX);
+    }
+  if (data->fEXTADD != NULL)
+    {
+      free (data->fEXTADD);
+    }
+  if (data->fSTREET != NULL)
+    {
+      free (data->fSTREET);
+    }
+  if (data->fLOCALITY != NULL)
+    {
+      free (data->fLOCALITY);
+    }
+  if (data->fREGION != NULL)
+    {
+      free (data->fREGION);
+    }
+  if (data->fPCODE != NULL)
+    {
+      free (data->fPCODE);
+    }
+  if (data->fCTRY != NULL)
+    {
+      free (data->fCTRY);
+    }
+  free (data);
+}
+
 struct vcard_LABEL_t *
 vcard_LABEL_decode (xmlreader_t * reader)
 {
@@ -599,7 +750,7 @@ vcard_LABEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "WORK") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -607,7 +758,7 @@ vcard_LABEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "POSTAL") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -615,7 +766,7 @@ vcard_LABEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "PARCEL") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -623,7 +774,7 @@ vcard_LABEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "PREF") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -631,23 +782,25 @@ vcard_LABEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "LINE") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      vlist_append ((vlist_t **) & elm->fLINE, (void *) value, 0);
-	    }			// for end part 1
+	      if (elm->fLINE == NULL)
+		elm->fLINE = array_new (sizeof (char *), 0);
+	      array_append (elm->fLINE, (void *) &value);
+	    }
 	  else if (strcmp (namespace, ns_vcard) != 0)
 	    {
 	      elm->fDOMINTL = enum_vcard_DOMINTL_from_string (name);
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
-	    }			// any end
-	}			// case end
-    }				// while end
+	    }
+	}
+    }
   return elm;
 }
 
@@ -695,18 +848,54 @@ vcard_LABEL_encode (xmlwriter_t * writer, struct vcard_LABEL_t *elm)
       if (err != 0)
 	return err;
     }
-  vlist_t *curr = elm->fLINE;
-  while (curr != NULL)
+  int len = array_length (elm->fLINE);
+  int i = 0;
+  for (i = 0; i < len; i++)
     {
-      err = xmlwriter_simple_element (writer, ns_vcard, "LINE", curr->data);
+      char **value = array_get (elm->fLINE, i);
+      err =
+	xmlwriter_simple_element (writer, ns_vcard, "LINE", (char *) value);
       if (err != 0)
 	return err;
-      curr = curr->next;
     }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_LABEL_free (struct vcard_LABEL_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fHOME)
+    {
+    }
+  if (data->fWORK)
+    {
+    }
+  if (data->fPOSTAL)
+    {
+    }
+  if (data->fPARCEL)
+    {
+    }
+  if (data->fDOMINTL != 0)
+    {
+    }
+  if (data->fPREF)
+    {
+    }
+  int len = array_length (data->fLINE);
+  int i = 0;
+  for (i = 0; i < len; i++)
+    {
+      char **value = array_get (data->fLINE, i);
+      free (*value);
+    }
+  array_free (data->fLINE);
+  free (data);
 }
 
 struct vcard_TEL_t *
@@ -736,7 +925,7 @@ vcard_TEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "WORK") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -744,7 +933,7 @@ vcard_TEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "VOICE") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -752,7 +941,7 @@ vcard_TEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "FAX") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -760,7 +949,7 @@ vcard_TEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "PAGER") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -768,7 +957,7 @@ vcard_TEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "MSG") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -776,7 +965,7 @@ vcard_TEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "CELL") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -784,7 +973,7 @@ vcard_TEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "VIDEO") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -792,7 +981,7 @@ vcard_TEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "BBS") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -800,7 +989,7 @@ vcard_TEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "MODEM") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -808,7 +997,7 @@ vcard_TEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "ISDN") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -816,7 +1005,7 @@ vcard_TEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "PCS") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -824,7 +1013,7 @@ vcard_TEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "PREF") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -832,17 +1021,17 @@ vcard_TEL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "NUMBER") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fNUMBER = (const char *) value;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      elm->fNUMBER = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -944,6 +1133,57 @@ vcard_TEL_encode (xmlwriter_t * writer, struct vcard_TEL_t *elm)
   return 0;
 }
 
+void
+vcard_TEL_free (struct vcard_TEL_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fHOME)
+    {
+    }
+  if (data->fWORK)
+    {
+    }
+  if (data->fVOICE)
+    {
+    }
+  if (data->fFAX)
+    {
+    }
+  if (data->fPAGER)
+    {
+    }
+  if (data->fMSG)
+    {
+    }
+  if (data->fCELL)
+    {
+    }
+  if (data->fVIDEO)
+    {
+    }
+  if (data->fBBS)
+    {
+    }
+  if (data->fMODEM)
+    {
+    }
+  if (data->fISDN)
+    {
+    }
+  if (data->fPCS)
+    {
+    }
+  if (data->fPREF)
+    {
+    }
+  if (data->fNUMBER != NULL)
+    {
+      free (data->fNUMBER);
+    }
+  free (data);
+}
+
 struct vcard_EMAIL_t *
 vcard_EMAIL_decode (xmlreader_t * reader)
 {
@@ -971,7 +1211,7 @@ vcard_EMAIL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "WORK") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -979,7 +1219,7 @@ vcard_EMAIL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "INTERNET") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -987,7 +1227,7 @@ vcard_EMAIL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "PREF") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -995,7 +1235,7 @@ vcard_EMAIL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "X400") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
@@ -1003,17 +1243,17 @@ vcard_EMAIL_decode (xmlreader_t * reader)
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
 	      continue;
-	    }			// for end part 1
+	    }
 	  else if ((strcmp (name, "USERID") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fUSERID = (const char *) value;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      elm->fUSERID = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -1067,6 +1307,33 @@ vcard_EMAIL_encode (xmlwriter_t * writer, struct vcard_EMAIL_t *elm)
   return 0;
 }
 
+void
+vcard_EMAIL_free (struct vcard_EMAIL_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fHOME)
+    {
+    }
+  if (data->fWORK)
+    {
+    }
+  if (data->fINTERNET)
+    {
+    }
+  if (data->fPREF)
+    {
+    }
+  if (data->fX400)
+    {
+    }
+  if (data->fUSERID != NULL)
+    {
+      free (data->fUSERID);
+    }
+  free (data);
+}
+
 vcard_JABBERID_t *
 vcard_JABBERID_decode (xmlreader_t * reader)
 {
@@ -1088,6 +1355,15 @@ vcard_JABBERID_encode (xmlwriter_t * writer, vcard_JABBERID_t * elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_JABBERID_free (vcard_JABBERID_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
 }
 
 vcard_MAILER_t *
@@ -1113,6 +1389,15 @@ vcard_MAILER_encode (xmlwriter_t * writer, vcard_MAILER_t * elm)
   return 0;
 }
 
+void
+vcard_MAILER_free (vcard_MAILER_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
+}
+
 vcard_TZ_t *
 vcard_TZ_decode (xmlreader_t * reader)
 {
@@ -1132,6 +1417,15 @@ vcard_TZ_encode (xmlwriter_t * writer, vcard_TZ_t * elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_TZ_free (vcard_TZ_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
 }
 
 struct vcard_GEO_t *
@@ -1160,18 +1454,18 @@ vcard_GEO_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fLAT = (const char *) value;
-	    }			// for end part 1
+	      elm->fLAT = (char *) value;
+	    }
 	  else if ((strcmp (name, "LON") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fLON = (const char *) value;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      elm->fLON = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -1200,6 +1494,22 @@ vcard_GEO_encode (xmlwriter_t * writer, struct vcard_GEO_t *elm)
   return 0;
 }
 
+void
+vcard_GEO_free (struct vcard_GEO_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fLAT != NULL)
+    {
+      free (data->fLAT);
+    }
+  if (data->fLON != NULL)
+    {
+      free (data->fLON);
+    }
+  free (data);
+}
+
 vcard_TITLE_t *
 vcard_TITLE_decode (xmlreader_t * reader)
 {
@@ -1223,6 +1533,15 @@ vcard_TITLE_encode (xmlwriter_t * writer, vcard_TITLE_t * elm)
   return 0;
 }
 
+void
+vcard_TITLE_free (vcard_TITLE_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
+}
+
 vcard_ROLE_t *
 vcard_ROLE_decode (xmlreader_t * reader)
 {
@@ -1243,6 +1562,15 @@ vcard_ROLE_encode (xmlwriter_t * writer, vcard_ROLE_t * elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_ROLE_free (vcard_ROLE_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
 }
 
 struct vcard_LOGO_t *
@@ -1271,26 +1599,26 @@ vcard_LOGO_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fTYPE = (const char *) value;
-	    }			// for end part 1
+	      elm->fTYPE = (char *) value;
+	    }
 	  else if ((strcmp (name, "BINVAL") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fBINVAL = (const char *) value;
-	    }			// for end part 1
+	      elm->fBINVAL = (char *) value;
+	    }
 	  else if ((strcmp (name, "EXTVAL") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fEXTVAL = (const char *) value;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      elm->fEXTVAL = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -1327,6 +1655,26 @@ vcard_LOGO_encode (xmlwriter_t * writer, struct vcard_LOGO_t *elm)
   return 0;
 }
 
+void
+vcard_LOGO_free (struct vcard_LOGO_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fTYPE != NULL)
+    {
+      free (data->fTYPE);
+    }
+  if (data->fBINVAL != NULL)
+    {
+      free (data->fBINVAL);
+    }
+  if (data->fEXTVAL != NULL)
+    {
+      free (data->fEXTVAL);
+    }
+  free (data);
+}
+
 vcard_EXTVAL_t *
 vcard_EXTVAL_decode (xmlreader_t * reader)
 {
@@ -1348,6 +1696,15 @@ vcard_EXTVAL_encode (xmlwriter_t * writer, vcard_EXTVAL_t * elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_EXTVAL_free (vcard_EXTVAL_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
 }
 
 struct vcard_AGENT_t *
@@ -1392,8 +1749,8 @@ vcard_AGENT_decode (xmlreader_t * reader)
 	      elm->type = EXTENSION_TYPE_VCARD_EXTVAL;
 	      elm->u->fEXTVAL = newel;
 	    }
-	}			// case end
-    }				// while end
+	}
+    }
   return elm;
 }
 
@@ -1414,6 +1771,19 @@ vcard_AGENT_encode (xmlwriter_t * writer, struct vcard_AGENT_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_AGENT_free (struct vcard_AGENT_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->u != NULL)
+    {
+      extension_t ext = { data->type, data->u };
+      xstream_extension_free (&ext);
+    }
+  free (data);
 }
 
 struct vcard_ORG_t *
@@ -1442,18 +1812,20 @@ vcard_ORG_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fORGNAME = (const char *) value;
-	    }			// for end part 1
+	      elm->fORGNAME = (char *) value;
+	    }
 	  else if ((strcmp (name, "ORGUNIT") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      vlist_append ((vlist_t **) & elm->fORGUNIT, (void *) value, 0);
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      if (elm->fORGUNIT == NULL)
+		elm->fORGUNIT = array_new (sizeof (char *), 0);
+	      array_append (elm->fORGUNIT, (void *) &value);
+	    }
+	}
+    }
   return elm;
 }
 
@@ -1471,19 +1843,41 @@ vcard_ORG_encode (xmlwriter_t * writer, struct vcard_ORG_t *elm)
       if (err != 0)
 	return err;
     }
-  vlist_t *curr = elm->fORGUNIT;
-  while (curr != NULL)
+  int len = array_length (elm->fORGUNIT);
+  int i = 0;
+  for (i = 0; i < len; i++)
     {
+      char **value = array_get (elm->fORGUNIT, i);
       err =
-	xmlwriter_simple_element (writer, ns_vcard, "ORGUNIT", curr->data);
+	xmlwriter_simple_element (writer, ns_vcard, "ORGUNIT",
+				  (char *) value);
       if (err != 0)
 	return err;
-      curr = curr->next;
     }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_ORG_free (struct vcard_ORG_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fORGNAME != NULL)
+    {
+      free (data->fORGNAME);
+    }
+  int len = array_length (data->fORGUNIT);
+  int i = 0;
+  for (i = 0; i < len; i++)
+    {
+      char **value = array_get (data->fORGUNIT, i);
+      free (*value);
+    }
+  array_free (data->fORGUNIT);
+  free (data);
 }
 
 struct vcard_CATEGORIES_t *
@@ -1512,10 +1906,12 @@ vcard_CATEGORIES_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      vlist_append ((vlist_t **) & elm->fKEYWORD, (void *) value, 0);
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      if (elm->fKEYWORD == NULL)
+		elm->fKEYWORD = array_new (sizeof (char *), 0);
+	      array_append (elm->fKEYWORD, (void *) &value);
+	    }
+	}
+    }
   return elm;
 }
 
@@ -1526,19 +1922,37 @@ vcard_CATEGORIES_encode (xmlwriter_t * writer, struct vcard_CATEGORIES_t *elm)
   err = xmlwriter_start_element (writer, ns_vcard, "CATEGORIES");
   if (err != 0)
     return err;
-  vlist_t *curr = elm->fKEYWORD;
-  while (curr != NULL)
+  int len = array_length (elm->fKEYWORD);
+  int i = 0;
+  for (i = 0; i < len; i++)
     {
+      char **value = array_get (elm->fKEYWORD, i);
       err =
-	xmlwriter_simple_element (writer, ns_vcard, "KEYWORD", curr->data);
+	xmlwriter_simple_element (writer, ns_vcard, "KEYWORD",
+				  (char *) value);
       if (err != 0)
 	return err;
-      curr = curr->next;
     }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_CATEGORIES_free (struct vcard_CATEGORIES_t *data)
+{
+  if (data == NULL)
+    return;
+  int len = array_length (data->fKEYWORD);
+  int i = 0;
+  for (i = 0; i < len; i++)
+    {
+      char **value = array_get (data->fKEYWORD, i);
+      free (*value);
+    }
+  array_free (data->fKEYWORD);
+  free (data);
 }
 
 vcard_NOTE_t *
@@ -1561,6 +1975,15 @@ vcard_NOTE_encode (xmlwriter_t * writer, vcard_NOTE_t * elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_NOTE_free (vcard_NOTE_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
 }
 
 vcard_PRODID_t *
@@ -1586,6 +2009,15 @@ vcard_PRODID_encode (xmlwriter_t * writer, vcard_PRODID_t * elm)
   return 0;
 }
 
+void
+vcard_PRODID_free (vcard_PRODID_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
+}
+
 vcard_REV_t *
 vcard_REV_decode (xmlreader_t * reader)
 {
@@ -1606,6 +2038,15 @@ vcard_REV_encode (xmlwriter_t * writer, vcard_REV_t * elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_REV_free (vcard_REV_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
 }
 
 vcard_SORT_STRING_t *
@@ -1631,6 +2072,15 @@ vcard_SORT_STRING_encode (xmlwriter_t * writer, vcard_SORT_STRING_t * elm)
   return 0;
 }
 
+void
+vcard_SORT_STRING_free (vcard_SORT_STRING_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
+}
+
 struct vcard_SOUND_t *
 vcard_SOUND_decode (xmlreader_t * reader)
 {
@@ -1642,7 +2092,7 @@ vcard_SOUND_decode (xmlreader_t * reader)
   const char *value = xmlreader_text (reader);
   if (reader->err != 0)
     return NULL;
-  elm->fValue = (const char *) value;
+  elm->fValue = (char *) value;
   return elm;
 }
 
@@ -1664,6 +2114,18 @@ vcard_SOUND_encode (xmlwriter_t * writer, struct vcard_SOUND_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_SOUND_free (struct vcard_SOUND_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fValue != NULL)
+    {
+      free (data->fValue);
+    }
+  free (data);
 }
 
 vcard_PHONETIC_t *
@@ -1689,6 +2151,15 @@ vcard_PHONETIC_encode (xmlwriter_t * writer, vcard_PHONETIC_t * elm)
   return 0;
 }
 
+void
+vcard_PHONETIC_free (vcard_PHONETIC_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
+}
+
 vcard_UID_t *
 vcard_UID_decode (xmlreader_t * reader)
 {
@@ -1709,6 +2180,15 @@ vcard_UID_encode (xmlwriter_t * writer, vcard_UID_t * elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_UID_free (vcard_UID_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
 }
 
 vcard_URL_t *
@@ -1733,6 +2213,15 @@ vcard_URL_encode (xmlwriter_t * writer, vcard_URL_t * elm)
   return 0;
 }
 
+void
+vcard_URL_free (vcard_URL_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
+}
+
 vcard_DESC_t *
 vcard_DESC_decode (xmlreader_t * reader)
 {
@@ -1753,6 +2242,15 @@ vcard_DESC_encode (xmlwriter_t * writer, vcard_DESC_t * elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_DESC_free (vcard_DESC_t * data)
+{
+  if (data == NULL)
+    return;
+  free (data);
+  free (data);
 }
 
 struct vcard_CLASS_t *
@@ -1780,9 +2278,9 @@ vcard_CLASS_decode (xmlreader_t * reader)
 	      elm->fType = enum_vcard_CLASS_type_from_string (name);
 	      if (xmlreader_skip_element (reader) == -1)
 		return NULL;
-	    }			// any end
-	}			// case end
-    }				// while end
+	    }
+	}
+    }
   return elm;
 }
 
@@ -1804,6 +2302,17 @@ vcard_CLASS_encode (xmlwriter_t * writer, struct vcard_CLASS_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_CLASS_free (struct vcard_CLASS_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fType != 0)
+    {
+    }
+  free (data);
 }
 
 struct vcard_KEY_t *
@@ -1832,18 +2341,18 @@ vcard_KEY_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fTYPE = (const char *) value;
-	    }			// for end part 1
+	      elm->fTYPE = (char *) value;
+	    }
 	  else if ((strcmp (name, "CRED") == 0)
 		   && (strcmp (namespace, ns_vcard) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fCRED = (const char *) value;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      elm->fCRED = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -1870,6 +2379,22 @@ vcard_KEY_encode (xmlwriter_t * writer, struct vcard_KEY_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+vcard_KEY_free (struct vcard_KEY_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fTYPE != NULL)
+    {
+      free (data->fTYPE);
+    }
+  if (data->fCRED != NULL)
+    {
+      free (data->fCRED);
+    }
+  free (data);
 }
 
 enum vcard_SOUND_type_t

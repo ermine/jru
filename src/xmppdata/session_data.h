@@ -19,4 +19,5 @@ struct session_session_t
 struct session_session_t *session_session_decode (xmlreader_t * reader);
 int session_session_encode (xmlwriter_t * writer,
 			    struct session_session_t *data);
+void session_session_free (struct session_session_t *data);
 #endif

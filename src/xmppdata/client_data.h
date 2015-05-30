@@ -61,9 +61,9 @@ struct client_iq_t
 {
   jid_t *fFrom;
   jid_t *fTo;
-  const char *fId;
+  char *fId;
   enum client_iq_type_t fType;
-  const char *fLang;
+  char *fLang;
   extension_t *fPayload;
   struct stanza_error_t *fError;
 };
@@ -73,13 +73,13 @@ struct client_presence_t
 {
   jid_t *fFrom;
   jid_t *fTo;
-  const char *fId;
+  char *fId;
   enum client_presence_type_t fType;
-  const char *fLang;
+  char *fLang;
   enum client_presence_show_t fShow;
-  const char *fStatus;
+  char *fStatus;
   int *fPriority;
-  vlist_t *fX;
+  array_t *fX;
   struct stanza_error_t *fError;
 };
 
@@ -88,23 +88,26 @@ struct client_message_t
 {
   jid_t *fFrom;
   jid_t *fTo;
-  const char *fId;
+  char *fId;
   enum client_message_type_t fType;
-  const char *fLang;
-  const char *fThread;
+  char *fLang;
+  char *fThread;
   langstring_t *fSubject;
   langstring_t *fBody;
-  vlist_t *fX;
+  array_t *fX;
   struct stanza_error_t *fError;
 };
 
 
 struct client_iq_t *client_iq_decode (xmlreader_t * reader);
 int client_iq_encode (xmlwriter_t * writer, struct client_iq_t *data);
+void client_iq_free (struct client_iq_t *data);
 struct client_presence_t *client_presence_decode (xmlreader_t * reader);
 int client_presence_encode (xmlwriter_t * writer,
 			    struct client_presence_t *data);
+void client_presence_free (struct client_presence_t *data);
 struct client_message_t *client_message_decode (xmlreader_t * reader);
 int client_message_encode (xmlwriter_t * writer,
 			   struct client_message_t *data);
+void client_message_free (struct client_message_t *data);
 #endif

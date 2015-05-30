@@ -18,7 +18,6 @@ int bufio_writer_write (bufio_writer_t* writer, int ncount, ...);
 int bufio_writer_write_len (bufio_writer_t* writer, const char* str, int len);
 
 typedef struct {
-  int fd;
   int err;
   char* buf;
   int length;
@@ -26,10 +25,13 @@ typedef struct {
   int write_pos;
 } bufio_reader_t;
 
-bufio_reader_t* bufio_reader_new (int fd);
+void bufio_reader_init (bufio_reader_t* reader);
+int bufio_reader_available (bufio_reader_t* reader);
+int bufio_reader_fill (bufio_reader_t* reader, char* buf, int len);
 void bufio_reader_free (bufio_reader_t* reader);
 void bufio_reader_reset (bufio_reader_t* reader);
-uint8_t bufio_reader_readbyte (bufio_reader_t* reader);
-uint32_t bufio_reader_readrune (bufio_reader_t* reader);
+uint8_t bufio_reader_get_byte (bufio_reader_t* reader);
+void bufio_reader_unget_byte (bufio_reader_t* reader);
+uint32_t bufio_reader_get_rune (bufio_reader_t* reader);
 
 #endif

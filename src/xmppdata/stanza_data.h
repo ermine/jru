@@ -48,11 +48,12 @@ struct stanza_error_t
   struct stanza_condition_set_t
   {
     enum stanza_error_condition_name_t fName;
-    const char *fExtra;
+    char *fExtra;
   } fCondition;
 };
 
 
 struct stanza_error_t *stanza_error_decode (xmlreader_t * reader);
 int stanza_error_encode (xmlwriter_t * writer, struct stanza_error_t *data);
+void stanza_error_free (struct stanza_error_t *data);
 #endif

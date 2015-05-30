@@ -29,3 +29,12 @@ iq_t* iq_new (stream_t* strm, jid_t* from, jid_t* to, int type, void* payload,
   return iq;
 }
   
+void iq_free (iq_t* iq) {
+  if (iq == NULL)
+    return;
+  
+  if (iq->fPayload != NULL)
+    free (iq->fPayload);
+
+  free (iq);
+}

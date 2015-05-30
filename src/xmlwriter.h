@@ -17,7 +17,7 @@ typedef struct {
   array_t* tags;
 } xmlwriter_t;
 
-xmlwriter_t* xmlwriter_new (int fd);
+void xmlwriter_init (xmlwriter_t* writer, int fd);
 void xmlwriter_free (xmlwriter_t* writer);
 void xmlwriter_reset (xmlwriter_t* writer);
 int xmlwriter_set_prefix (xmlwriter_t* writer, const char* prefix, const char* uri);

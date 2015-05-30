@@ -15,17 +15,12 @@ struct pair_t {
   const char* p2;
 };
 
-xmlwriter_t* xmlwriter_new (int fd) {
-  xmlwriter_t* writer = malloc (sizeof (xmlwriter_t));
-  if (writer == NULL)
-    fatal ("xmlwriter_new: malloc failed");
-  
+void xmlwriter_init (xmlwriter_t* writer, int fd) {
   memset (writer, 0, sizeof (xmlwriter_t));
   writer->buf = bufio_writer_new (fd);
   stringpair_set (&writer->namespaces, ns_xml, "xml");
   writer->local_namespaces = array_new (sizeof (array_t*), 0);
   writer->tags = array_new (sizeof (struct pair_t), 5);
-  return writer;
 }
 
 void xmlwriter_free (xmlwriter_t* writer) {
@@ -71,14 +66,13 @@ int xmlwriter_set_prefix (xmlwriter_t* writer, const char* prefix, const char* u
 	}
 	stringpair_set (&writer->namespaces, uri, prefix);
 
-  array_t* lns = NULL;
   if (array_length (writer->local_namespaces) <= writer->depth) {
-    lns = array_new (sizeof (array_t*), 5);
-    array_append (writer->local_namespaces, &lns);
-  } else {
-    lns = *(array_t**) array_get (writer->local_namespaces, writer->depth);
+    array_t* a = array_new (sizeof (array_t*), 5);
+    array_append (writer->local_namespaces, &a);
   }
-  array_append (lns, &uri);
+  array_t** lns = array_get_last (writer->local_namespaces);
+
+  array_append (*lns, &uri);
   return 0;
 }
 
@@ -136,8 +130,19 @@ int xmlwriter_end_element (xmlwriter_t* writer) {
     fatal ("xmlwriter_end_element: writer is null");
 
   writer->depth--;
-  struct pair_t* tag = array_get (writer->tags, writer->depth);
+  struct pair_t* tag = array_get_last (writer->tags);
+  array_delete_last (writer->tags);
 
+  array_t** lns = array_get_last (writer->local_namespaces);
+  int i, len = array_length (*lns);
+  for (i = 0; i < len; i++) {
+    char* ns = array_get (*lns, i);
+    stringpair_delete (&writer->namespaces, ns);
+  }
+  array_free (*lns);
+
+  array_delete_last (writer->local_namespaces);
+  
   int err = 0;
   if (writer->openStartTag) {
 		writer->openStartTag = false;
@@ -153,15 +158,6 @@ int xmlwriter_end_element (xmlwriter_t* writer) {
   err = bufio_writer_write (writer->buf, 2, tag->p2, ">");
   if (err != 0) return err;
 
-  array_t* lns = *(array_t**) array_get (writer->local_namespaces, writer->depth);
-  int i, len = array_length (lns);
-  for (i = 0; i < len; i++) {
-    char* ns = array_get (lns, i);
-    stringpair_delete (&writer->namespaces, ns);
-  }
-  array_free (lns);
-  array_slice (writer->local_namespaces, 0, writer->depth);
-  array_slice (writer->tags, 0, writer->depth);
   return 0;
 }
 

@@ -1,5 +1,6 @@
 #include "xep_time_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_time = "urn:xmpp:time";
 
@@ -29,18 +30,18 @@ time_time_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fTz = (const char *) value;
-	    }			// for end part 1
+	      elm->fTz = (char *) value;
+	    }
 	  else if ((strcmp (name, "utc") == 0)
 		   && (strcmp (namespace, ns_time) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fUtc = (const char *) value;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      elm->fUtc = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -67,4 +68,20 @@ time_time_encode (xmlwriter_t * writer, struct time_time_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+time_time_free (struct time_time_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fTz != NULL)
+    {
+      free (data->fTz);
+    }
+  if (data->fUtc != NULL)
+    {
+      free (data->fUtc);
+    }
+  free (data);
 }

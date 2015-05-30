@@ -42,35 +42,38 @@ const char *enum_xdata_field_type_to_string (enum xdata_field_type_t);
 struct xdata_x_t
 {
   enum xdata_x_type_t fType;
-  const char *fTitle;
-  vlist_t *fReported;
-  vlist_t *fFields;
+  char *fTitle;
+  array_t *fReported;
+  array_t *fFields;
 };
 
 
 struct xdata_field_t
 {
-  const char *fLabel;
+  char *fLabel;
   enum xdata_field_type_t fType;
-  const char *fVar;
-  const char *fDesc;
+  char *fVar;
+  char *fDesc;
   bool fRequired;
-  const char *fValue;
-  vlist_t *fOption;
+  char *fValue;
+  array_t *fOption;
 };
 
 
 struct xdata_option_t
 {
-  const char *fLabel;
-  const char *fValue;
+  char *fLabel;
+  char *fValue;
 };
 
 
 struct xdata_x_t *xdata_x_decode (xmlreader_t * reader);
 int xdata_x_encode (xmlwriter_t * writer, struct xdata_x_t *data);
+void xdata_x_free (struct xdata_x_t *data);
 struct xdata_field_t *xdata_field_decode (xmlreader_t * reader);
 int xdata_field_encode (xmlwriter_t * writer, struct xdata_field_t *data);
+void xdata_field_free (struct xdata_field_t *data);
 struct xdata_option_t *xdata_option_decode (xmlreader_t * reader);
 int xdata_option_encode (xmlwriter_t * writer, struct xdata_option_t *data);
+void xdata_option_free (struct xdata_option_t *data);
 #endif

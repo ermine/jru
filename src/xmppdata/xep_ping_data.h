@@ -18,4 +18,5 @@ struct ping_ping_t
 
 struct ping_ping_t *ping_ping_decode (xmlreader_t * reader);
 int ping_ping_encode (xmlwriter_t * writer, struct ping_ping_t *data);
+void ping_ping_free (struct ping_ping_t *data);
 #endif

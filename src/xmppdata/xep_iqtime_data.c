@@ -1,5 +1,6 @@
 #include "xep_iqtime_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_iqtime = "jabber:iq:time";
 
@@ -29,26 +30,26 @@ iqtime_time_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fUtc = (const char *) value;
-	    }			// for end part 1
+	      elm->fUtc = (char *) value;
+	    }
 	  else if ((strcmp (name, "tz") == 0)
 		   && (strcmp (namespace, ns_iqtime) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fTz = (const char *) value;
-	    }			// for end part 1
+	      elm->fTz = (char *) value;
+	    }
 	  else if ((strcmp (name, "display") == 0)
 		   && (strcmp (namespace, ns_iqtime) == 0))
 	    {
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      elm->fDisplay = (const char *) value;
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      elm->fDisplay = (char *) value;
+	    }
+	}
+    }
   return elm;
 }
 
@@ -83,4 +84,24 @@ iqtime_time_encode (xmlwriter_t * writer, struct iqtime_time_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+iqtime_time_free (struct iqtime_time_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fUtc != NULL)
+    {
+      free (data->fUtc);
+    }
+  if (data->fTz != NULL)
+    {
+      free (data->fTz);
+    }
+  if (data->fDisplay != NULL)
+    {
+      free (data->fDisplay);
+    }
+  free (data);
 }

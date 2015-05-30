@@ -1,5 +1,6 @@
 #include "roster_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_roster = "jabber:iq:roster";
 
@@ -15,7 +16,7 @@ roster_roster_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "ver");
   if (avalue != NULL)
     {
-      elm->fVer = avalue;
+      elm->fVer = (char *) avalue;
     }
   int type = 0;
   while (1)
@@ -37,11 +38,12 @@ roster_roster_decode (xmlreader_t * reader)
 		{
 		  return NULL;
 		}
-	      vlist_append ((vlist_t **) & elm->fItems, (void *) newel,
-			    EXTENSION_TYPE_ROSTER_ITEM);
+	      if (elm->fItems == NULL)
+		elm->fItems = array_new (sizeof (extension_t), 0);
+	      array_append (elm->fItems, newel);
 	    }
-	}			// case end
-    }				// while end
+	}
+    }
   return elm;
 }
 
@@ -59,19 +61,41 @@ roster_roster_encode (xmlwriter_t * writer, struct roster_roster_t *elm)
 	return err;
     }
   {
-    vlist_t *curr = (vlist_t *) elm->fItems;
-    while (curr != NULL)
+    int len = array_length (elm->fItems);
+    int i = 0;
+    for (i = 0; i < len; i++)
       {
-	err = roster_item_encode (writer, curr->data);
+	extension_t *ext = array_get (elm->fItems, i);
+	err = roster_item_encode (writer, ext->data);
 	if (err != 0)
 	  return err;
-	curr = curr->next;
       }
   }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+roster_roster_free (struct roster_roster_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fVer != NULL)
+    {
+      free (data->fVer);
+    }
+  {
+    int len = array_length (data->fItems);
+    int i = 0;
+    for (i = 0; i < len; i++)
+      {
+	roster_item_free (array_get (data->fItems, i));
+      }
+    array_free (data->fItems);
+  }
+  free (data);
 }
 
 struct roster_item_t *
@@ -102,7 +126,7 @@ roster_item_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "name");
   if (avalue != NULL)
     {
-      elm->fName = avalue;
+      elm->fName = (char *) avalue;
     }
   avalue = xmlreader_attribute (reader, NULL, "subscription");
   if (avalue != NULL)
@@ -127,10 +151,12 @@ roster_item_decode (xmlreader_t * reader)
 	      const char *value = xmlreader_text (reader);
 	      if (reader->err != 0)
 		return NULL;
-	      vlist_append ((vlist_t **) & elm->fGroup, (void *) value, 0);
-	    }			// for end part 1
-	}			// case end
-    }				// while end
+	      if (elm->fGroup == NULL)
+		elm->fGroup = array_new (sizeof (char *), 0);
+	      array_append (elm->fGroup, (void *) &value);
+	    }
+	}
+    }
   return elm;
 }
 
@@ -179,18 +205,48 @@ roster_item_encode (xmlwriter_t * writer, struct roster_item_t *elm)
       if (err != 0)
 	return err;
     }
-  vlist_t *curr = elm->fGroup;
-  while (curr != NULL)
+  int len = array_length (elm->fGroup);
+  int i = 0;
+  for (i = 0; i < len; i++)
     {
-      err = xmlwriter_simple_element (writer, ns_roster, "group", curr->data);
+      char **value = array_get (elm->fGroup, i);
+      err =
+	xmlwriter_simple_element (writer, ns_roster, "group", (char *) value);
       if (err != 0)
 	return err;
-      curr = curr->next;
     }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+roster_item_free (struct roster_item_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fApproved)
+    {
+      free (data->fApproved);
+    }
+  if (data->fJid != NULL)
+    {
+      jid_free (data->fJid);
+    }
+  if (data->fName != NULL)
+    {
+      free (data->fName);
+    }
+  int len = array_length (data->fGroup);
+  int i = 0;
+  for (i = 0; i < len; i++)
+    {
+      char **value = array_get (data->fGroup, i);
+      free (*value);
+    }
+  array_free (data->fGroup);
+  free (data);
 }
 
 enum roster_item_ask_t

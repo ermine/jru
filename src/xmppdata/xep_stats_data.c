@@ -1,16 +1,13 @@
 #include "xep_stats_data.h"
 #include "helpers.h"
+#include "errors.h"
 
 const char *ns_stats = "http://jabber.org/protocol/stats";
 
-struct stats_stats_t *
+array_t *
 stats_stats_decode (xmlreader_t * reader)
 {
-  struct stats_stats_t **elm = NULL;
-  elm = malloc (sizeof (struct stats_stats_t **));
-  if (elm == NULL)
-    fatal ("stats_stats_t: malloc failed");
-  *elm = NULL;
+  array_t *elm = array_new (sizeof (extension_t), 0);
   int type = 0;
   while (1)
     {
@@ -31,34 +28,48 @@ stats_stats_decode (xmlreader_t * reader)
 		{
 		  return NULL;
 		}
-	      vlist_append ((vlist_t **) elm, (void *) newel,
-			    EXTENSION_TYPE_STATS_STAT);
+	      array_append (elm, newel);
 	    }
 	}
     }
-  return *elm;
+  return elm;
 }
 
 int
-stats_stats_encode (xmlwriter_t * writer, struct stats_stats_t *elm)
+stats_stats_encode (xmlwriter_t * writer, array_t * elm)
 {
   int err = 0;
   err = xmlwriter_start_element (writer, ns_stats, "query");
   if (err != 0)
     return err;
-  vlist_t *curr = (vlist_t *) elm;
-  while (curr != NULL)
+  int len = array_length (elm);
+  int i = 0;
+  for (i = 0; i < len; i++)
     {
-//tut
-      err = stats_stat_encode (writer, curr->data);
+      struct stats_stat_t *data = array_get (elm, i);
+      err = stats_stat_encode (writer, data);
       if (err != 0)
 	return err;
-      curr = curr->next;
     }
   err = xmlwriter_end_element (writer);
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+stats_stats_free (array_t * data)
+{
+  if (data == NULL)
+    return;
+  int len = array_length (data);
+  int i = 0;
+  for (i = 0; i < len; i++)
+    {
+      struct stats_stat_t **item = array_get (data, i);
+      stats_stat_free (item);
+    }
+  array_free (data);
 }
 
 struct stats_stat_t *
@@ -73,19 +84,19 @@ stats_stat_decode (xmlreader_t * reader)
   avalue = xmlreader_attribute (reader, NULL, "name");
   if (avalue != NULL)
     {
-      elm->fName = avalue;
+      elm->fName = (char *) avalue;
     }
   avalue = xmlreader_attribute (reader, NULL, "units");
   if (avalue != NULL)
     {
-      elm->fUnits = avalue;
+      elm->fUnits = (char *) avalue;
     }
   avalue = xmlreader_attribute (reader, NULL, "value");
   if (avalue != NULL)
     {
-      elm->fValue = avalue;
+      elm->fValue = (char *) avalue;
     }
-  if (xmlreader_skip_element (reader) != -1)
+  if (xmlreader_skip_element (reader) == -1)
     return NULL;
   return elm;
 }
@@ -119,4 +130,24 @@ stats_stat_encode (xmlwriter_t * writer, struct stats_stat_t *elm)
   if (err != 0)
     return err;
   return 0;
+}
+
+void
+stats_stat_free (struct stats_stat_t *data)
+{
+  if (data == NULL)
+    return;
+  if (data->fName != NULL)
+    {
+      free (data->fName);
+    }
+  if (data->fUnits != NULL)
+    {
+      free (data->fUnits);
+    }
+  if (data->fValue != NULL)
+    {
+      free (data->fValue);
+    }
+  free (data);
 }

@@ -35,15 +35,24 @@ void* array_get (array_t* array, uint32_t idx) {
   if (array == NULL)
     fatal ("array_get: array is null");
   if (idx > array->length)
-    fatal ("array_get: idx %d is lager that array length %d", idx, array->length);
+    fatal ("array_get: idx %d is larger then array length %d", idx, array->length);
   return array->data + idx * array->size;
+}
+
+inline void* array_get_last (array_t* array) {
+  return array_get (array, array->length - 1);
+}
+
+inline void array_delete_last (array_t* array) {
+  if (array->length > 0)
+    array->length--;
 }
 
 void array_set (array_t* array, uint32_t idx, void* element) {
   if (array == NULL)
     fatal ("aggay_get: array is null");
   if (idx > array->length)
-    fatal ("array_set: idx %d is lager that array length %d", idx, array->length);
+    fatal ("array_set: idx %d is larger than array length %d", idx, array->length);
   if (element == NULL)
     fatal ("array_set: element is null");
   memmove (array->data + idx * array->size, element, array->size);
